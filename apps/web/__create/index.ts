@@ -165,13 +165,16 @@ app.all('/api/auth/*', authHandler());
 
 
 // 3. Middlewares
-/*
-app.use('*', requestId());
-app.use('*', (c, next) => {
-  const requestId = c.get('requestId') as string;
-  return als.run({ requestId }, () => next());
+app.use('*', async (c, next) => {
+  // Polyfill headers.get if it's a plain object (common on some Vercel Node versions/drivers)
+  const rawReq = c.req.raw as any;
+  if (rawReq && rawReq.headers && typeof rawReq.headers.get !== 'function') {
+    const headersObj = rawReq.headers;
+    rawReq.headers.get = (name: string) => headersObj[name.toLowerCase()] || null;
+  }
+  await next();
 });
-*/
+
 // app.use(contextStorage()); // Keep this as it's safe and useful for Hono
 
 

@@ -51,6 +51,6 @@ const routes: RouteConfigEntry[] = Object.keys(pageFiles).map((path) => {
 const notFound = route('*', './__create/not-found.tsx');
 const finalRoutes = [...routes, notFound];
 
-console.log('Generated routes:', finalRoutes.map(r => r.path));
+// console.log('Generated routes:', finalRoutes.map(r => r.path));
 
 export default finalRoutes;
