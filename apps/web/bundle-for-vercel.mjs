@@ -1,7 +1,7 @@
 /**
  * bundle-for-vercel.mjs
  * Post-build script that bundles the React Router + Hono server for Vercel.
- * Strategy: Fully self-contained CJS bundle to avoid all runtime loading issues.
+ * Strategy: ESM bundle with externalized core dependencies.
  */
 import { build } from 'esbuild';
 import path from 'path';
@@ -10,7 +10,7 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-console.log('📦 Bundling server for Vercel deployment (Self-contained CJS)...');
+console.log('📦 Bundling server for Vercel deployment (ESM + External)...');
 
 // Ensure the build/server directory has the output from react-router build
 const serverBuildPath = path.join(__dirname, 'build/server/index.js');
@@ -19,35 +19,37 @@ if (!fs.existsSync(serverBuildPath)) {
     process.exit(1);
 }
 
-// Bundle the server build + handler into a single self-contained file
+// Bundle the server build + handler into a single ESM file
+// We externalize core packages to avoid bundling complexities and dynamic requires
 try {
     await build({
         entryPoints: [path.join(__dirname, '__create/vercel-entry.mjs')],
         bundle: true,
         platform: 'node',
         target: 'node20',
-        format: 'cjs',
-        outfile: path.join(__dirname, '../../api/index.js'),
+        format: 'esm',
+        outfile: path.join(__dirname, '../../api/index.mjs'),
         external: [
             'fsevents',
             '@node-rs/*',
             'virtual:react-router/server-build',
+            'react',
+            'react-dom',
+            'react-dom/server',
+            'react-router',
+            '@react-router/node',
+            'isbot',
+            '@auth/core',
+            '@hono/auth-js',
+            '@neondatabase/serverless',
+            'hono',
+            'hono/vercel',
+            'node:*'
         ],
-        // No 'packages: external' - we want EVERYTHING bundled
+        // No mocking of @hono/node-server here to be safe
         minify: true,
         sourcemap: true,
         logLevel: 'info',
-        plugins: [
-            {
-                name: 'alias',
-                setup(build) {
-                    build.onResolve({ filter: /^@hono\/node-server$/ }, (args) => {
-                        const mockPath = path.resolve(__dirname, '__create', 'mock-hono-server.js');
-                        return { path: mockPath };
-                    });
-                },
-            },
-        ],
         define: {
             'process.env.NODE_ENV': '"production"'
         },
@@ -57,4 +59,4 @@ try {
     process.exit(1);
 }
 
-console.log('✅ Server bundled to ../../api/index.js');
+console.log('✅ Server bundled to ../../api/index.mjs');

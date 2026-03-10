@@ -5,9 +5,11 @@ import updatedFetch from '../src/__create/fetch';
 const API_BASENAME = '/api';
 const api = new Hono();
 
+/*
 if (globalThis.fetch) {
   globalThis.fetch = updatedFetch;
 }
+*/
 
 // Use import.meta.glob to find all API routes. Eagerly load them to avoid top-level await deadlocks.
 const routeModules = import.meta.glob('../src/app/api/**/route.js', { eager: true });
