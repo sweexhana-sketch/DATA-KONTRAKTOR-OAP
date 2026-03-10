@@ -33,6 +33,14 @@ try {
             'node:*',
             'fsevents', // Optional MacOS dependency
             '@node-rs/*',
+            'react',
+            'react-dom',
+            'react-dom/server',
+            'react-router',
+            '@react-router/node',
+            '@react-router/express',
+            '@react-router/fs-routes',
+            'isbot'
         ],
         packages: 'external', // Vital for Vercel: don't bundle node_modules, let Vercel handle them
 
