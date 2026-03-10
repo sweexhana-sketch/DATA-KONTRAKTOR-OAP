@@ -32,7 +32,10 @@ try {
         external: [
             'node:*',
             'fsevents', // Optional MacOS dependency
+            '@node-rs/*',
         ],
+        packages: 'external', // Vital for Vercel: don't bundle node_modules, let Vercel handle them
+
         minify: true,
         sourcemap: true,
         logLevel: 'info',
