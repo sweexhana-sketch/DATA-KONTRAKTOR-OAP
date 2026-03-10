@@ -2,7 +2,11 @@
 const fs = require('fs');
 const path = require('path');
 
-const binPath = path.resolve(__dirname, 'node_modules', '@react-router', 'dev', 'bin.js');
+let binPath = path.resolve(__dirname, 'node_modules', '@react-router', 'dev', 'bin.js');
+if (!fs.existsSync(binPath)) {
+    // If not in apps/web/node_modules, try root node_modules (monorepo hoisting)
+    binPath = path.resolve(__dirname, '..', '..', 'node_modules', '@react-router', 'dev', 'bin.js');
+}
 
 try {
     if (fs.existsSync(binPath)) {

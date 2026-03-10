@@ -9,8 +9,8 @@
         "node": ">=20"
     },
     "scripts": {
-        "install:web": "cd apps/web && npm install",
-        "build:web": "cd apps/web && npm run build:vercel"
+        "install:web": "npm install",
+        "build:web": "npm run build -w web"
     },
     "dependencies": {
         "@hono/node-server": "^1.19.10",

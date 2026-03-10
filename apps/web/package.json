@@ -4,8 +4,8 @@
 	"type": "module",
 	"scripts": {
 		"dev": "set START_SERVER=true && react-router dev",
-		"build": "node patch-react-router.cjs && node node_modules/@react-router/dev/bin.js build",
-		"build:vercel": "node patch-react-router.cjs && node node_modules/@react-router/dev/bin.js build && node bundle-for-vercel.mjs",
+		"build": "node patch-react-router.cjs && react-router build",
+		"build:vercel": "node patch-react-router.cjs && react-router build && node bundle-for-vercel.mjs",
 		"start": "set START_SERVER=true && react-router-serve ./build/server/index.js",
 		"typecheck": "react-router typegen && tsc --noEmit",
 		"postinstall": "node patch-react-router.cjs"
