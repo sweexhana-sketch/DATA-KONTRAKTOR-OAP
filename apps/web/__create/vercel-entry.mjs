@@ -11,7 +11,13 @@ import * as rrBuild from '../build/server/index.js';
 import { app } from './index.ts';
 
 // Attach React Router handler for non-API routes on Vercel
-const rrHandler = createRequestHandler(rrBuild, 'production');
+// ESM imports of CommonJS sometimes put everything inside .default
+// ESM imports of CommonJS sometimes put everything inside .default
+const finalBuild = rrBuild.default ? { ...rrBuild.default } : { ...rrBuild };
+if (!finalBuild.future) {
+    finalBuild.future = { v8_middleware: true };
+}
+const rrHandler = createRequestHandler(finalBuild, 'production');
 app.all('*', async (c) => {
     return rrHandler(c.req.raw);
 });
