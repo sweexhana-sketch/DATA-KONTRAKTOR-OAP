@@ -1,6 +1,7 @@
 /**
  * bundle-for-vercel.mjs
  * Post-build script that bundles the React Router + Hono server for Vercel.
+ * Strategy: Fully self-contained CJS bundle to avoid all runtime loading issues.
  */
 import { build } from 'esbuild';
 import path from 'path';
@@ -9,7 +10,7 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-console.log('📦 Bundling server for Vercel deployment (Node.js runtime)...');
+console.log('📦 Bundling server for Vercel deployment (Self-contained CJS)...');
 
 // Ensure the build/server directory has the output from react-router build
 const serverBuildPath = path.join(__dirname, 'build/server/index.js');
@@ -25,20 +26,14 @@ try {
         bundle: true,
         platform: 'node',
         target: 'node20',
-        format: 'esm', // Back to ESM for Node 20
-        outfile: path.join(__dirname, '../../api/index.mjs'),
+        format: 'cjs',
+        outfile: path.join(__dirname, '../../api/index.js'),
         external: [
             'fsevents',
             '@node-rs/*',
             'virtual:react-router/server-build',
-            'react',
-            'react-dom',
-            'react-dom/server',
-            'react-router',
-            '@react-router/node',
-            'isbot'
         ],
-        packages: 'external', // Let Vercel handle node_modules from root package.json
+        // No 'packages: external' - we want EVERYTHING bundled
         minify: true,
         sourcemap: true,
         logLevel: 'info',
@@ -62,4 +57,4 @@ try {
     process.exit(1);
 }
 
-console.log('✅ Server bundled to ../../api/index.mjs');
+console.log('✅ Server bundled to ../../api/index.js');
