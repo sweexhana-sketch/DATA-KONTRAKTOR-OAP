@@ -28,7 +28,7 @@ try {
         platform: 'node',
         target: 'node20',
         format: 'esm',
-        outfile: path.join(__dirname, '../api/index.mjs'),
+        outfile: path.join(__dirname, '../../api/index.mjs'),
         external: [
             'node:*',
             'fsevents', // Optional MacOS dependency
