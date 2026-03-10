@@ -19,6 +19,8 @@ import sql from '../src/app/api/utils/sql.js';
 
 const als = new AsyncLocalStorage<{ requestId: string }>();
 
+// Disabling custom logging for Vercel debugging
+/*
 for (const method of ['log', 'info', 'warn', 'error', 'debug'] as const) {
   const original = nodeConsole[method].bind(console);
 
@@ -31,6 +33,7 @@ for (const method of ['log', 'info', 'warn', 'error', 'debug'] as const) {
     }
   };
 }
+*/
 
 const app = new Hono<{ Bindings: AuthEnv; Variables: { requestId: string } }>();
 
@@ -162,12 +165,15 @@ app.all('/api/auth/*', authHandler());
 
 
 // 3. Middlewares
+/*
 app.use('*', requestId());
 app.use('*', (c, next) => {
   const requestId = c.get('requestId') as string;
   return als.run({ requestId }, () => next());
 });
-app.use(contextStorage());
+*/
+// app.use(contextStorage()); // Keep this as it's safe and useful for Hono
+
 
 app.onError((err, c) => {
   const isApi = c.req.path.startsWith('/api') || c.req.path.startsWith('/integrations');

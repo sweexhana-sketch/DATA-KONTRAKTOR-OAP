@@ -1,7 +1,6 @@
 /**
  * bundle-for-vercel.mjs
- * Post-build script that bundles the React Router + Hono server into a 
- * single self-contained file that Vercel can use as a serverless function.
+ * Post-build script that bundles the React Router + Hono server for Vercel.
  */
 import { build } from 'esbuild';
 import path from 'path';
@@ -10,7 +9,7 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-console.log('📦 Bundling server for Vercel deployment (CJS format)...');
+console.log('📦 Bundling server for Vercel deployment (Node.js runtime)...');
 
 // Ensure the build/server directory has the output from react-router build
 const serverBuildPath = path.join(__dirname, 'build/server/index.js');
@@ -26,14 +25,20 @@ try {
         bundle: true,
         platform: 'node',
         target: 'node20',
-        format: 'cjs',
-        outfile: path.join(__dirname, '../../api/index.js'),
+        format: 'esm', // Back to ESM for Node 20
+        outfile: path.join(__dirname, '../../api/index.mjs'),
         external: [
-            'fsevents', // Optional MacOS dependency
+            'fsevents',
             '@node-rs/*',
             'virtual:react-router/server-build',
+            'react',
+            'react-dom',
+            'react-dom/server',
+            'react-router',
+            '@react-router/node',
+            'isbot'
         ],
-        // packages: 'external', // REMOVED: We want to bundle everything for a single file deployment
+        packages: 'external', // Let Vercel handle node_modules from root package.json
         minify: true,
         sourcemap: true,
         logLevel: 'info',
@@ -54,17 +59,7 @@ try {
     });
 } catch (e) {
     console.error('❌ Esbuild Build Failed:');
-    if (e.errors) {
-        e.errors.forEach(err => {
-            console.error(`- Error: ${err.text}`);
-            if (err.location) {
-                console.error(`  Location: ${err.location.file}:${err.location.line}`);
-            }
-        });
-    } else {
-        console.error(e);
-    }
     process.exit(1);
 }
 
-console.log('✅ Server bundled to ../../api/index.js');
+console.log('✅ Server bundled to ../../api/index.mjs');
