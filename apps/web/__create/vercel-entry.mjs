@@ -9,7 +9,8 @@ import rrBuild from '../build/server/index.js';
 // The default export of the server build is the Hono app
 const app = rrBuild.default || rrBuild;
 
-// Defensive middleware to polyfill headers.get on the raw request if needed
+// Defensive middleware to polyfill headers.get on the raw request if needed.
+// This is critical for environments where the request object is not fully standard.
 app.use('*', async (c, next) => {
     const rawReq = c.req.raw;
     if (rawReq && rawReq.headers && typeof rawReq.headers.get !== 'function') {

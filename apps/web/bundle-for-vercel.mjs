@@ -1,7 +1,7 @@
 /**
  * bundle-for-vercel.mjs
  * Post-build script that bundles the React Router + Hono server for Vercel.
- * Strategy: ESM bundle with externalized core dependencies.
+ * Strategy: External CommonJS (CJS) to avoid ESM/CJS interop and dynamic require issues.
  */
 import { build } from 'esbuild';
 import path from 'path';
@@ -10,7 +10,7 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-console.log('📦 Bundling server for Vercel deployment (ESM + External)...');
+console.log('📦 Bundling server for Vercel deployment (External CJS)...');
 
 // Ensure the build/server directory has the output from react-router build
 const serverBuildPath = path.join(__dirname, 'build/server/index.js');
@@ -19,16 +19,15 @@ if (!fs.existsSync(serverBuildPath)) {
     process.exit(1);
 }
 
-// Bundle the server build + handler into a single ESM file
-// We externalize core packages to avoid bundling complexities and dynamic requires
+// Bundle the server build + handler into a single CJS file
 try {
     await build({
         entryPoints: [path.join(__dirname, '__create/vercel-entry.mjs')],
         bundle: true,
         platform: 'node',
         target: 'node20',
-        format: 'esm',
-        outfile: path.join(__dirname, '../../api/index.mjs'),
+        format: 'cjs',
+        outfile: path.join(__dirname, '../../api/index.js'),
         external: [
             'fsevents',
             '@node-rs/*',
@@ -46,7 +45,6 @@ try {
             'hono/vercel',
             'node:*'
         ],
-        // No mocking of @hono/node-server here to be safe
         minify: true,
         sourcemap: true,
         logLevel: 'info',
@@ -59,4 +57,4 @@ try {
     process.exit(1);
 }
 
-console.log('✅ Server bundled to ../../api/index.mjs');
+console.log('✅ Server bundled to ../../api/index.js');
