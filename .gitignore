@@ -1,0 +1,10 @@
+node_modules/
+.env
+.env.*
+!.env.example
+.vercel/
+build/
+.react-router/
+*.log
+dist/
+.DS_Store
