@@ -10,7 +10,7 @@
     },
     "scripts": {
         "install:web": "npm install",
-        "build:web": "npm run build -w web"
+        "build:web": "npm run build:vercel -w web"
     },
     "dependencies": {
         "@hono/node-server": "^1.19.10",
