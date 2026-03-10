@@ -4,15 +4,15 @@
     "rewrites": [
         {
             "source": "/api/auth/(.*)",
-            "destination": "/api/index.mjs"
+            "destination": "/api/index.js"
         },
         {
             "source": "/api/(.*)",
-            "destination": "/api/index.mjs"
+            "destination": "/api/index.js"
         },
         {
             "source": "/integrations/(.*)",
-            "destination": "/api/index.mjs"
+            "destination": "/api/index.js"
         },
         {
             "source": "/assets/(.*)",
@@ -20,7 +20,7 @@
         },
         {
             "source": "/(.*)",
-            "destination": "/api/index.mjs"
+            "destination": "/api/index.js"
         }
     ]
 }

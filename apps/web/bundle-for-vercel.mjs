@@ -4,14 +4,13 @@
  * single self-contained file that Vercel can use as a serverless function.
  */
 import { build } from 'esbuild';
-import { execSync } from 'child_process';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-console.log('📦 Bundling server for Vercel deployment...');
+console.log('📦 Bundling server for Vercel deployment (CJS format)...');
 
 // Ensure the build/server directory has the output from react-router build
 const serverBuildPath = path.join(__dirname, 'build/server/index.js');
@@ -27,23 +26,14 @@ try {
         bundle: true,
         platform: 'node',
         target: 'node20',
-        format: 'esm',
-        outfile: path.join(__dirname, '../../api/index.mjs'),
+        format: 'cjs',
+        outfile: path.join(__dirname, '../../api/index.js'),
         external: [
-            'node:*',
             'fsevents', // Optional MacOS dependency
             '@node-rs/*',
-            'react',
-            'react-dom',
-            'react-dom/server',
-            'react-router',
-            '@react-router/node',
-            '@react-router/express',
-            '@react-router/fs-routes',
-            'isbot'
+            'virtual:react-router/server-build',
         ],
-        packages: 'external', // Vital for Vercel: don't bundle node_modules, let Vercel handle them
-
+        // packages: 'external', // REMOVED: We want to bundle everything for a single file deployment
         minify: true,
         sourcemap: true,
         logLevel: 'info',
@@ -77,4 +67,4 @@ try {
     process.exit(1);
 }
 
-console.log('✅ Server bundled to ../api/index.mjs');
+console.log('✅ Server bundled to ../../api/index.js');
