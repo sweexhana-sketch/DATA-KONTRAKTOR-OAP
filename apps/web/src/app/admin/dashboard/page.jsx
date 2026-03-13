@@ -7,6 +7,9 @@ import {
   Clock,
   XCircle,
   TrendingUp,
+  Shield,
+  LayoutDashboard,
+  UserCog,
 } from "lucide-react";
 
 export default function AdminDashboardPage() {
@@ -73,20 +76,46 @@ export default function AdminDashboardPage() {
     <div className="min-h-screen bg-[#F7F9FC]">
       {/* Header */}
       <div className="bg-white border-b border-[#E4E9F2] px-6 py-4">
-        <div className="max-w-7xl mx-auto flex items-center space-x-4">
-          <button
-            onClick={() => (window.location.href = "/")}
-            className="w-8 h-8 bg-white border border-[#E4E9F2] rounded-full flex items-center justify-center hover:bg-[#F7F9FC]"
-          >
-            <ArrowLeft className="w-4 h-4 text-[#6F7689]" />
-          </button>
-          <div>
-            <h1 className="text-xl font-bold text-[#2A2E45]">
-              Dashboard Admin
-            </h1>
-            <p className="text-sm text-[#8A8FA6]">
-              Dinas PUPR Papua Barat Daya
-            </p>
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={() => (window.location.href = "/")}
+              className="w-8 h-8 bg-white border border-[#E4E9F2] rounded-full flex items-center justify-center hover:bg-[#F7F9FC]"
+            >
+              <ArrowLeft className="w-4 h-4 text-[#6F7689]" />
+            </button>
+            <div>
+              <h1 className="text-xl font-bold text-[#2A2E45]">
+                Dashboard Admin
+              </h1>
+              <p className="text-sm text-[#8A8FA6]">
+                Dinas PUPR Papua Barat Daya
+              </p>
+            </div>
+          </div>
+          {/* Nav links */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => (window.location.href = "/admin/dashboard")}
+              className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold bg-[#EDF3FF] text-[#1570FF]"
+            >
+              <LayoutDashboard className="w-4 h-4" />
+              Dashboard
+            </button>
+            <button
+              onClick={() => (window.location.href = "/admin/users")}
+              className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-[#6F7689] hover:bg-[#F7F9FC]"
+            >
+              <UserCog className="w-4 h-4" />
+              Pengguna
+            </button>
+            <button
+              onClick={() => (window.location.href = "/admin/contractors")}
+              className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-[#6F7689] hover:bg-[#F7F9FC]"
+            >
+              <Users className="w-4 h-4" />
+              Kontraktor
+            </button>
           </div>
         </div>
       </div>
@@ -142,6 +171,18 @@ export default function AdminDashboardPage() {
               {stats?.stats?.rejected || 0}
             </div>
             <div className="text-sm text-[#8A8FA6]">Ditolak</div>
+          </div>
+
+          <div className="bg-white border border-[#E4E9F2] rounded p-6">
+            <div className="flex items-center justify-between mb-2">
+              <div className="w-10 h-10 bg-indigo-50 rounded-full flex items-center justify-center">
+                <Shield className="w-5 h-5 text-indigo-600" />
+              </div>
+            </div>
+            <div className="text-2xl font-bold text-[#2A2E45] mb-1">
+              {stats?.stats?.totalUsers || 0}
+            </div>
+            <div className="text-sm text-[#8A8FA6]">Total Pengguna</div>
           </div>
         </div>
 
@@ -217,7 +258,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
           <button
             onClick={() =>
               (window.location.href = "/admin/contractors?status=pending")
@@ -244,6 +285,19 @@ export default function AdminDashboardPage() {
             </h3>
             <p className="text-sm text-[#8A8FA6]">
               Lihat dan kelola semua data kontraktor terdaftar
+            </p>
+          </button>
+
+          <button
+            onClick={() => (window.location.href = "/admin/users")}
+            className="bg-white border border-[#E4E9F2] rounded p-6 hover:bg-[#FAFBFD] text-left transition-colors"
+          >
+            <Shield className="w-8 h-8 text-indigo-600 mb-3" />
+            <h3 className="text-lg font-semibold text-[#2A2E45] mb-2">
+              Kelola Akun Pengguna
+            </h3>
+            <p className="text-sm text-[#8A8FA6]">
+              Lihat semua akun terdaftar, status input, dan atur role
             </p>
           </button>
         </div>

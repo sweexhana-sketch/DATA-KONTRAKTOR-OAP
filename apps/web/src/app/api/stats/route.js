@@ -17,6 +17,8 @@ export async function GET(request) {
       await sql`SELECT COUNT(*) as count FROM contractors WHERE status = 'approved'`;
     const rejectedContractors =
       await sql`SELECT COUNT(*) as count FROM contractors WHERE status = 'rejected'`;
+    const totalUsers =
+      await sql`SELECT COUNT(*) as count FROM auth_users WHERE role != 'admin'`;
 
     const recentSubmissions = await sql`
       SELECT * FROM contractors 
@@ -30,6 +32,7 @@ export async function GET(request) {
         pending: parseInt(pendingApprovals[0].count),
         approved: parseInt(approvedContractors[0].count),
         rejected: parseInt(rejectedContractors[0].count),
+        totalUsers: parseInt(totalUsers[0].count),
       },
       recentSubmissions,
     });
@@ -38,3 +41,4 @@ export async function GET(request) {
     return Response.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
+
