@@ -107,7 +107,7 @@ export default function SignInPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/auth/send-otp", {
+      const res = await fetch("/api/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -134,7 +134,7 @@ export default function SignInPage() {
     setError(null);
     try {
       // 1. Verifikasi OTP
-      const verifyRes = await fetch("/api/auth/verify-otp", {
+      const verifyRes = await fetch("/api/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, otp }),
@@ -173,7 +173,7 @@ export default function SignInPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/auth/send-otp", {
+      const res = await fetch("/api/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
