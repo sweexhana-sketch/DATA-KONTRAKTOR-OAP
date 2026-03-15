@@ -50,13 +50,18 @@ export async function POST(request, context, c) {
       VALUES (${normalizedEmail}, ${otp}, ${expiresAt})
     `;
 
-    // 4. Kirim email
-    await sendOtpEmail({ to: normalizedEmail, otp, name: 'Calon Pengguna' });
+    // 4. Kirim email secara non-blocking
+    const emailPromise = sendOtpEmail({ to: normalizedEmail, otp, name: 'Calon Pengguna' })
+      .catch(err => console.error('[signup-send-otp] Background Email Error:', err));
 
-    return Response.json({ ok: true, message: 'Kode OTP telah dikirim ke email Anda' });
+    if (c && c.executionCtx) {
+      c.executionCtx.waitUntil(emailPromise);
+    }
+
+    return Response.json({ ok: true, message: 'Kode OTP sedang dikirim ke email Anda' });
 
   } catch (error) {
     console.error('[signup-send-otp] Error:', error);
-    return Response.json({ error: 'Terjadi kesalahan server' }, { status: 500 });
+    return Response.json({ error: 'Terjadi kesalahan pada sistem. Silakan coba lagi.' }, { status: 500 });
   }
 }

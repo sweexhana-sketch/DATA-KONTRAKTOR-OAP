@@ -34,8 +34,6 @@ export async function POST(request, context, c) {
     const passwordValid = user ? await compare(password, user.password) : false;
 
     if (!passwordValid) {
-      // Delay kecil untuk anti-timing attack
-      await new Promise(r => setTimeout(r, 300));
       return Response.json({ error: 'Email atau password salah' }, { status: 401 });
     }
 
@@ -58,13 +56,18 @@ export async function POST(request, context, c) {
       VALUES (${normalizedEmail}, ${otp}, ${expiresAt})
     `;
 
-    // Kirim email OTP
-    await sendOtpEmail({ to: user.email, otp, name: user.name });
+    // Kirim email OTP secara non-blocking (Hono executionCtx)
+    const emailPromise = sendOtpEmail({ to: user.email, otp, name: user.name })
+      .catch(err => console.error('[send-otp] Background Email Error:', err));
+    
+    if (c && c.executionCtx) {
+      c.executionCtx.waitUntil(emailPromise);
+    }
 
-    return Response.json({ ok: true, message: 'Kode OTP telah dikirim ke email Anda' });
+    return Response.json({ ok: true, message: 'Kode OTP sedang dikirim ke email Anda' });
 
   } catch (error) {
     console.error('[send-otp] Error:', error);
-    return Response.json({ error: 'Terjadi kesalahan server' }, { status: 500 });
+    return Response.json({ error: 'Terjadi kesalahan pada sistem. Silakan coba lagi.' }, { status: 500 });
   }
 }
