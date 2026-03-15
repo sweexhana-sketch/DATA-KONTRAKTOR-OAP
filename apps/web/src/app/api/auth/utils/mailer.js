@@ -34,25 +34,30 @@ function createTransport() {
 }
 
 export async function sendOtpEmail({ to, otp, name }) {
-  // Jika SMTP belum dikonfigurasi, tampilkan OTP di console (dev mode)
+  const isProd = process.env.NODE_ENV === 'production';
+  
+  // Jika SMTP belum dikonfigurasi
   if (!isSmtpConfigured()) {
-    console.warn('[mailer] SMTP belum dikonfigurasi — OTP tidak dikirim via email.');
+    const errorMsg = '[mailer] SMTP_USER atau SMTP_PASS belum disetel di environment variables.';
+    console.warn(errorMsg);
     console.log(`\n=============================`);
     console.log(`  OTP untuk ${to}: ${otp}`);
     console.log(`=============================\n`);
-    return; // Tidak throw — biarkan flow login tetap berjalan
+    
+    // Di produksi, kita harus menganggap ini error fatal agar user tahu ada yang kurang
+    if (isProd) {
+      throw new Error(errorMsg);
+    }
+    return; 
   }
 
   try {
     const transporter = createTransport();
     const from = process.env.SMTP_FROM || `"Dinas PUPR Papua Barat Daya" <${process.env.SMTP_USER}>`;
 
-    console.log(`[mailer] Mencoba mengirim OTP ke ${to} menggunakan akun pengirim: ${process.env.SMTP_USER}...`);
+    console.log(`[mailer] Mencoba mengirim OTP ke ${to}...`);
     
-    // Verifikasi koneksi terlebih dahulu
-    await transporter.verify();
-    console.log(`[mailer] SMTP Connection verified OK`);
-
+    // Kirim email OTP
     const info = await transporter.sendMail({
       from,
       to,
@@ -110,15 +115,30 @@ export async function sendOtpEmail({ to, otp, name }) {
     });
     console.log(`[mailer] OTP berhasil dikirim ke ${to}. MessageId: ${info.messageId}`);
   } catch (err) {
-    // Jangan throw — catat error tapi biarkan OTP flow tetap jalan
-    console.error('======================================================');
-    console.error('❌ [mailer] GAGAL KIRIM EMAIL OTP');
-    console.error('Pesan Error:', err.message);
-    if (err.code) console.error('Kode Error:', err.code);
-    if (err.command) console.error('Command SMTP Gagal:', err.command);
-    if (err.responseCode) console.error('Response Code SMTP:', err.responseCode);
-    console.error('======================================================');
-    console.log(`[mailer] Karena gagal, ini OTP untuk ${to} (fallback console): ${otp}`);
+    console.error('❌ [mailer] GAGAL KIRIM EMAIL OTP:', err.message);
+    
+    // Di produksi, kita lempar error agar API mengirim status 500/Error ke user
+    if (isProd) {
+      throw err;
+    }
+    
+    // Di development, tampilkan di console sebagai fallback
+    console.log(`[mailer] Fallback Console OTP (karena error SMTP): ${otp}`);
   }
 }
+
+/** Fungsi test koneksi untuk debugging */
+export async function testSmtpConnection() {
+  if (!isSmtpConfigured()) {
+    return { ok: false, error: 'SMTP_USER atau SMTP_PASS belum disetel.' };
+  }
+  try {
+    const transporter = createTransport();
+    await transporter.verify();
+    return { ok: true, message: 'Koneksi SMTP Berhasil!' };
+  } catch (err) {
+    return { ok: false, error: err.message };
+  }
+}
+
 
