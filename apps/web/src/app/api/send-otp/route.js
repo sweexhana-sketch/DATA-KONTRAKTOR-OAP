@@ -26,48 +26,65 @@ export async function POST(request, context, c) {
 
     const normalizedEmail = email.toLowerCase().trim();
 
-    // Cek user ada
-    const users = await sql`SELECT id, email, name, password FROM auth_users WHERE email ILIKE ${normalizedEmail}`;
-    const user = users[0];
+    // 1. Database Check
+    let user;
+    try {
+      const users = await sql`SELECT id, email, name, password FROM auth_users WHERE email ILIKE ${normalizedEmail}`;
+      user = users[0];
+    } catch (e) {
+      return Response.json({ error: `ERR_DB: ${e.message}` }, { status: 500 });
+    }
 
-    // Validasi password
-    const passwordValid = user ? await compare(password, user.password) : false;
+    // 2. Password Validation
+    let passwordValid;
+    try {
+      passwordValid = user ? await compare(password, user.password) : false;
+    } catch (e) {
+      return Response.json({ error: `ERR_BCRYPT: ${e.message}` }, { status: 500 });
+    }
 
     if (!passwordValid) {
       return Response.json({ error: 'Email atau password salah' }, { status: 401 });
     }
 
-    // Rate limit: max 5 OTP request per email per 15 menit
-    const recentOtps = await sql`
-      SELECT COUNT(*) as count FROM login_otps
-      WHERE email = ${normalizedEmail} 
-        AND created_at > NOW() - INTERVAL '15 minutes'
-    `;
-    if (parseInt(recentOtps[0].count) >= 5) {
-      return Response.json({ error: 'Terlalu banyak permintaan OTP. Coba lagi dalam 15 menit.' }, { status: 429 });
+    // 3. Rate Limit check
+    try {
+      const recentOtps = await sql`
+        SELECT COUNT(*) as count FROM login_otps
+        WHERE email = ${normalizedEmail} 
+          AND created_at > NOW() - INTERVAL '15 minutes'
+      `;
+      if (parseInt(recentOtps[0].count) >= 5) {
+        return Response.json({ error: 'Terlalu banyak permintaan OTP. Coba lagi dalam 15 menit.' }, { status: 429 });
+      }
+    } catch (e) {
+      return Response.json({ error: `ERR_LIMIT: ${e.message}` }, { status: 500 });
     }
 
-    // Buat OTP baru (5 menit expired)
+    // 4. Create OTP
     const otp = generateOtp();
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
 
-    await sql`
-      INSERT INTO login_otps (email, otp, expires_at)
-      VALUES (${normalizedEmail}, ${otp}, ${expiresAt})
-    `;
-
-    // Kirim email OTP secara non-blocking (Hono executionCtx)
-    const emailPromise = sendOtpEmail({ to: user.email, otp, name: user.name })
-      .catch(err => console.error('[send-otp] Background Email Error:', err));
-    
-    if (c && c.executionCtx) {
-      c.executionCtx.waitUntil(emailPromise);
+    try {
+      await sql`
+        INSERT INTO login_otps (email, otp, expires_at)
+        VALUES (${normalizedEmail}, ${otp}, ${expiresAt})
+      `;
+    } catch (e) {
+      return Response.json({ error: `ERR_STORAGE: ${e.message}` }, { status: 500 });
     }
 
-    return Response.json({ ok: true, message: 'Kode OTP sedang dikirim ke email Anda' });
+    // 5. Send Email (Awaited for debug)
+    try {
+      await sendOtpEmail({ to: user.email, otp, name: user.name });
+    } catch (e) {
+      return Response.json({ error: `ERR_MAIL: ${e.message}` }, { status: 500 });
+    }
+
+    return Response.json({ ok: true, message: 'Kode OTP telah dikirim ke email Anda' });
 
   } catch (error) {
-    console.error('[send-otp] Error:', error);
-    return Response.json({ error: 'Terjadi kesalahan pada sistem. Silakan coba lagi.' }, { status: 500 });
+    console.error('[send-otp] Panic Error:', error);
+    return Response.json({ error: `PANIC: ${error.message}` }, { status: 500 });
   }
 }
