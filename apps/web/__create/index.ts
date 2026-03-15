@@ -16,6 +16,8 @@ import { serializeError } from 'serialize-error';
 import { API_BASENAME, api } from './route-builder';
 // @ts-ignore
 import sql from '../src/app/api/utils/sql.js';
+// @ts-ignore
+import { syncToGoogleSheets } from '../src/app/api/utils/google-sheets.js';
 
 const als = new AsyncLocalStorage<{ requestId: string }>();
 
@@ -91,11 +93,12 @@ const authConfig = initAuthConfig((_c) => {
         },
         authorize: async (credentials) => {
           try {
-            const { email, password } = credentials as Record<string, string>;
+            const { email: rawEmail, password } = credentials as Record<string, string>;
+            const email = rawEmail?.toLowerCase().trim();
             nodeConsole.log('[Auth] Authorize attempt for:', email);
             if (!email || !password) return null;
 
-            const users = await sql`SELECT id, email, name, password, role FROM auth_users WHERE email = ${email}`;
+            const users = await sql`SELECT id, email, name, password, role FROM auth_users WHERE email ILIKE ${email}`;
             const existing = users[0];
 
             if (existing && existing.password) {
@@ -144,6 +147,17 @@ const authConfig = initAuthConfig((_c) => {
               RETURNING id, email, name, role
             `;
             const newUser = result[0];
+
+            // Sync ke Google Sheets (DATA AKUN)
+            try {
+              syncToGoogleSheets({
+                action: 'SIGNUP',
+                user: newUser
+              }).catch(e => nodeConsole.error('Safe to ignore: signup sync failed', e));
+            } catch (e) {
+              // Non-blocking
+            }
+
             return {
               id: newUser.id,
               email: newUser.email,

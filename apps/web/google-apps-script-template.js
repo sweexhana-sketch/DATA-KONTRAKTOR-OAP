@@ -27,6 +27,7 @@ function doPost(e) {
 
         if (action === 'SUBMIT_KONTRAKTOR') return handleKontraktor(data);
         if (action === 'SUBMIT_KEGIATAN') return handleKegiatan(data);
+        if (action === 'SUBMIT_USER') return handleUser(data);
         if (action === 'CREATE' || action === 'UPDATE') return handleLegacyContractor(data);
 
         return ok('Action tidak dikenal, diabaikan');
@@ -144,6 +145,19 @@ function handleKontraktor(data) {
     ]);
 
     return ok('Data & Dokumen kontraktor OAP berhasil disimpan');
+}
+
+// ─────────────────────────────────────────────────────────────
+// Handler: Data User
+// ─────────────────────────────────────────────────────────────
+function handleUser(data) {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    appendToSheet(ss, 'Users', [
+        'No', 'Waktu', 'Nama', 'Email', 'Role'
+    ], [
+        autoNo(ss, 'Users'), data.timestamp || new Date().toISOString(), data.name, data.email, data.role
+    ]);
+    return ok('Data user berhasil disimpan ke Sheets');
 }
 
 // ─────────────────────────────────────────────────────────────

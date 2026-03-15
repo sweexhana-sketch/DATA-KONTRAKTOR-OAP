@@ -10,19 +10,27 @@ function generateOtp() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-export async function POST(request) {
+export async function POST(request, context, c) {
   try {
-    const { email, password } = await request.json();
+    let body;
+    if (c) {
+      body = await c.req.json();
+    } else {
+      body = await request.json();
+    }
+    const { email, password } = body;
 
     if (!email || !password) {
       return Response.json({ error: 'Email dan password wajib diisi' }, { status: 400 });
     }
 
+    const normalizedEmail = email.toLowerCase().trim();
+
     // Cek user ada
-    const users = await sql`SELECT id, email, name, password FROM auth_users WHERE email = ${email.toLowerCase().trim()}`;
+    const users = await sql`SELECT id, email, name, password FROM auth_users WHERE email ILIKE ${normalizedEmail}`;
     const user = users[0];
 
-    // Validasi password (tetap return pesan sama meski user tidak ada — security)
+    // Validasi password
     const passwordValid = user ? await compare(password, user.password) : false;
 
     if (!passwordValid) {
@@ -34,7 +42,7 @@ export async function POST(request) {
     // Rate limit: max 5 OTP request per email per 15 menit
     const recentOtps = await sql`
       SELECT COUNT(*) as count FROM login_otps
-      WHERE email = ${email.toLowerCase()} 
+      WHERE email = ${normalizedEmail} 
         AND created_at > NOW() - INTERVAL '15 minutes'
     `;
     if (parseInt(recentOtps[0].count) >= 5) {
@@ -47,7 +55,7 @@ export async function POST(request) {
 
     await sql`
       INSERT INTO login_otps (email, otp, expires_at)
-      VALUES (${email.toLowerCase()}, ${otp}, ${expiresAt})
+      VALUES (${normalizedEmail}, ${otp}, ${expiresAt})
     `;
 
     // Kirim email OTP

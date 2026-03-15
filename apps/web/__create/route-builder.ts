@@ -64,7 +64,7 @@ function registerRoutes() {
           const handler: Handler = async (c) => {
             const params = c.req.param();
             try {
-              return await route[method](c.req.raw, { params });
+              return await route[method](c.req.raw, { params }, c);
             } catch (err) {
               console.error(`Error in ${method} ${honoPath}:`, err);
               return c.json({ error: 'Internal Server Error' }, 500);

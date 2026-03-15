@@ -23,11 +23,13 @@ function createTransport() {
   return nodemailer.createTransport({
     host: process.env.SMTP_HOST || 'smtp.gmail.com',
     port: parseInt(process.env.SMTP_PORT || '587'),
-    secure: false,
+    secure: false, // true for port 465, false for port 587
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS,
     },
+    logger: true, // Log SMTP traffic
+    debug: true   // Include SMTP traffic in console
   });
 }
 
@@ -45,7 +47,13 @@ export async function sendOtpEmail({ to, otp, name }) {
     const transporter = createTransport();
     const from = process.env.SMTP_FROM || `"Dinas PUPR Papua Barat Daya" <${process.env.SMTP_USER}>`;
 
-    await transporter.sendMail({
+    console.log(`[mailer] Mencoba mengirim OTP ke ${to} menggunakan akun pengirim: ${process.env.SMTP_USER}...`);
+    
+    // Verifikasi koneksi terlebih dahulu
+    await transporter.verify();
+    console.log(`[mailer] SMTP Connection verified OK`);
+
+    const info = await transporter.sendMail({
       from,
       to,
       subject: `Kode OTP Login — Sistem Pendataan Kontraktor OAP`,
@@ -100,10 +108,17 @@ export async function sendOtpEmail({ to, otp, name }) {
         </html>
       `,
     });
-    console.log(`[mailer] OTP berhasil dikirim ke ${to}`);
+    console.log(`[mailer] OTP berhasil dikirim ke ${to}. MessageId: ${info.messageId}`);
   } catch (err) {
     // Jangan throw — catat error tapi biarkan OTP flow tetap jalan
-    console.error('[mailer] Gagal kirim email OTP:', err.message);
-    console.log(`[mailer] OTP untuk ${to} (fallback console): ${otp}`);
+    console.error('======================================================');
+    console.error('❌ [mailer] GAGAL KIRIM EMAIL OTP');
+    console.error('Pesan Error:', err.message);
+    if (err.code) console.error('Kode Error:', err.code);
+    if (err.command) console.error('Command SMTP Gagal:', err.command);
+    if (err.responseCode) console.error('Response Code SMTP:', err.responseCode);
+    console.error('======================================================');
+    console.log(`[mailer] Karena gagal, ini OTP untuk ${to} (fallback console): ${otp}`);
   }
 }
+

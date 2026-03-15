@@ -95,7 +95,7 @@ export async function POST(request) {
 
     // Sync to Google Sheets
     await syncToGoogleSheets({
-      action: 'CREATE',
+      action: 'SUBMIT_KONTRAKTOR',
       contractor: result[0],
     });
 
