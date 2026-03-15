@@ -174,26 +174,6 @@ const authConfig = initAuthConfig((_c) => {
   };
 });
 
-app.get('/api/test-smtp', async (c) => {
-  try {
-    // @ts-ignore
-    const { testSmtpConnection } = await import('../src/app/api/auth/utils/mailer.js');
-    const result = await testSmtpConnection();
-    return c.json({
-      ok: result.ok,
-      message: result.message,
-      error: result.error,
-      config: {
-        user: process.env.SMTP_USER ? 'TERISI' : 'KOSONG',
-        pass: process.env.SMTP_PASS ? 'TERISI' : 'KOSONG',
-        from: process.env.SMTP_FROM || 'DEFAULT'
-      }
-    });
-  } catch (err) {
-    return c.json({ ok: false, error: err.message }, 500);
-  }
-});
-
 app.use('/api/auth/*', authConfig);
 app.all('/api/auth/*', authHandler());
 

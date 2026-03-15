@@ -50,15 +50,10 @@ export async function POST(request, context, c) {
       VALUES (${normalizedEmail}, ${otp}, ${expiresAt})
     `;
 
-    // 4. Kirim email secara non-blocking
-    const emailPromise = sendOtpEmail({ to: normalizedEmail, otp, name: 'Calon Pengguna' })
-      .catch(err => console.error('[signup-send-otp] Background Email Error:', err));
+    // 4. Kirim email (Awaited agar reliabel di Vercel)
+    await sendOtpEmail({ to: normalizedEmail, otp, name: 'Calon Pengguna' });
 
-    if (c && c.executionCtx) {
-      c.executionCtx.waitUntil(emailPromise);
-    }
-
-    return Response.json({ ok: true, message: 'Kode OTP sedang dikirim ke email Anda' });
+    return Response.json({ ok: true, message: 'Kode OTP telah dikirim ke email Anda' });
 
   } catch (error) {
     console.error('[signup-send-otp] Error:', error);
