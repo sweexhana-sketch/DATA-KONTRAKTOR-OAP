@@ -224,8 +224,7 @@ export default function SignInPage() {
               <img src={logoPBD.src || logoPBD} alt="Logo" className="relative h-28 w-28 lg:h-32 lg:w-32 drop-shadow-2xl" />
             </div>
             <div className="space-y-1">
-               <h1 className="text-5xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-br from-amber-400 via-yellow-300 to-orange-500 drop-shadow-[0_0_20px_rgba(245,158,11,0.2)] tracking-tight">KONTRAKTOR</h1>
-               <h1 className="text-4xl lg:text-5xl font-black text-white drop-shadow-lg tracking-tight">OAP</h1>
+               <h1 className="text-6xl lg:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-br from-amber-400 via-yellow-300 to-orange-500 drop-shadow-[0_0_20px_rgba(245,158,11,0.2)] tracking-tight">SIKAP</h1>
             </div>
           </div>
           
