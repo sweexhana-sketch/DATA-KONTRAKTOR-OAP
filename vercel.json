@@ -1,0 +1,26 @@
+{
+    "version": 2,
+    "public": true,
+    "rewrites": [
+        {
+            "source": "/api/auth/(.*)",
+            "destination": "/api/index.js"
+        },
+        {
+            "source": "/api/(.*)",
+            "destination": "/api/index.js"
+        },
+        {
+            "source": "/integrations/(.*)",
+            "destination": "/api/index.js"
+        },
+        {
+            "source": "/assets/(.*)",
+            "destination": "/apps/web/build/client/assets/$1"
+        },
+        {
+            "source": "/(.*)",
+            "destination": "/api/index.js"
+        }
+    ]
+}

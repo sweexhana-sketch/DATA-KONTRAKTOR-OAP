@@ -1,0 +1,29 @@
+[
+  {
+    "id": "user_1772588482071_pyvrwl5jyf",
+    "email": "sigaptest@example.com",
+    "name": "Test User SIGAP",
+    "password": "$argon2id$v=19$m=65536,t=3,p=4$A12lY+KqHup0uAkQO+duXQ$VxfyeTlvdHEIuSN5ud5PxJAvKj9qL7BRhjr8PdHKAG0",
+    "emailVerified": null,
+    "image": null,
+    "createdAt": "2026-03-04T01:41:22.071Z"
+  },
+  {
+    "id": "user_1772588618528_9hlpkb4mf6",
+    "email": "calvinpapua2@gmail.com",
+    "name": "calvin papua",
+    "password": "$argon2id$v=19$m=65536,t=3,p=4$r97afNMSfWpgK5thJiW80A$kCf2p5/hRZtRcdzmMfldiHoqLm/PRSkrMaQG8YGcl+M",
+    "emailVerified": null,
+    "image": null,
+    "createdAt": "2026-03-04T01:43:38.528Z"
+  },
+  {
+    "id": "user_1772590022000_khpoewh41t",
+    "email": "admin@pupr-pbd.go.id",
+    "name": "Admin PUPR",
+    "password": "$argon2id$v=19$m=65536,t=3,p=4$a8AMqMdC7OFHGBT4jCUahg$CInkEsqEfEfpNq5nAH+kJdcK/sdrZhf+sdtXs+YPYA0",
+    "emailVerified": null,
+    "image": null,
+    "createdAt": "2026-03-04T02:07:02.000Z"
+  }
+]
