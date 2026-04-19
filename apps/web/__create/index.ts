@@ -221,14 +221,17 @@ function getHTMLForErrorPage(err: any): string {
   `;
 }
 
-if (process.env.CORS_ORIGINS) {
-  app.use(
-    '/*',
-    cors({
-      origin: process.env.CORS_ORIGINS.split(',').map((origin) => origin.trim()),
-    })
-  );
-}
+app.use(
+  '/*',
+  cors({
+    origin: (origin) => origin || '*',
+    allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowHeaders: ['Content-Type', 'Authorization', 'x-api-key', 'X-Requested-With', 'Accept'],
+    exposeHeaders: ['Content-Length'],
+    maxAge: 600,
+    credentials: true,
+  })
+);
 
 for (const method of ['post', 'put', 'patch'] as const) {
   app[method](
@@ -241,6 +244,117 @@ for (const method of ['post', 'put', 'patch'] as const) {
     })
   );
 }
+
+// ═══════════════════════════════════════════════════════════
+// ENDPOINT INTEGRASI PUBLIK — untuk SI PRO & sistem external
+// Tidak memerlukan cookie session, menggunakan optional API key
+// ═══════════════════════════════════════════════════════════
+
+// GET /api/integration/contractors — daftar semua kontraktor
+app.get('/api/integration/contractors', async (c) => {
+  try {
+    // Optional API key check (set SIPRO_API_KEY env var to enable strict mode)
+    const apiKeyEnv = process.env.SIPRO_API_KEY;
+    if (apiKeyEnv) {
+      const providedKey = c.req.header('x-api-key') || c.req.query('api_key');
+      if (providedKey !== apiKeyEnv) {
+        return c.json({ error: 'Unauthorized: invalid or missing API key' }, 401);
+      }
+    }
+
+    const status = c.req.query('status');
+    const search = c.req.query('search');
+    const limit  = parseInt(c.req.query('limit') || '500', 10);
+
+    let query = 'SELECT id, company_name, full_name, company_type, small_classification, medium_classification, large_classification, city, status, created_at, updated_at FROM contractors WHERE 1=1';
+    const params: any[] = [];
+    let idx = 1;
+
+    if (status && status !== 'all') {
+      query += ` AND status = $${idx}`;
+      params.push(status);
+      idx++;
+    }
+    if (search) {
+      query += ` AND (LOWER(full_name) LIKE LOWER($${idx}) OR LOWER(company_name) LIKE LOWER($${idx}))`;
+      params.push(`%${search}%`);
+      idx++;
+    }
+
+    query += ` ORDER BY created_at DESC LIMIT $${idx}`;
+    params.push(limit);
+
+    const contractors = await sql(query, params);
+
+    return c.json({
+      success: true,
+      total: contractors.length,
+      contractors,
+      synced_at: new Date().toISOString(),
+      source: 'DATA-KONTRAKTOR-OAP',
+    });
+  } catch (err) {
+    nodeConsole.error('[Integration] Error fetching contractors:', err);
+    return c.json({ success: false, error: 'Internal Server Error' }, 500);
+  }
+});
+
+// GET /api/integration/contractors/:id — detail satu kontraktor
+app.get('/api/integration/contractors/:id', async (c) => {
+  try {
+    const apiKeyEnv = process.env.SIPRO_API_KEY;
+    if (apiKeyEnv) {
+      const providedKey = c.req.header('x-api-key') || c.req.query('api_key');
+      if (providedKey !== apiKeyEnv) {
+        return c.json({ error: 'Unauthorized: invalid or missing API key' }, 401);
+      }
+    }
+
+    const id = c.req.param('id');
+    const rows = await sql`SELECT * FROM contractors WHERE id = ${id} LIMIT 1`;
+    if (!rows.length) return c.json({ success: false, error: 'Not found' }, 404);
+
+    return c.json({ success: true, contractor: rows[0], source: 'DATA-KONTRAKTOR-OAP' });
+  } catch (err) {
+    nodeConsole.error('[Integration] Error fetching contractor by id:', err);
+    return c.json({ success: false, error: 'Internal Server Error' }, 500);
+  }
+});
+
+// GET /api/integration/stats — statistik ringkasan untuk SI PRO
+app.get('/api/integration/stats', async (c) => {
+  try {
+    const apiKeyEnv = process.env.SIPRO_API_KEY;
+    if (apiKeyEnv) {
+      const providedKey = c.req.header('x-api-key') || c.req.query('api_key');
+      if (providedKey !== apiKeyEnv) {
+        return c.json({ error: 'Unauthorized: invalid or missing API key' }, 401);
+      }
+    }
+
+    const [total, pending, approved, rejected] = await Promise.all([
+      sql`SELECT COUNT(*) as count FROM contractors`,
+      sql`SELECT COUNT(*) as count FROM contractors WHERE status = 'pending'`,
+      sql`SELECT COUNT(*) as count FROM contractors WHERE status = 'approved'`,
+      sql`SELECT COUNT(*) as count FROM contractors WHERE status = 'rejected'`,
+    ]);
+
+    return c.json({
+      success: true,
+      stats: {
+        total: parseInt(total[0].count),
+        pending: parseInt(pending[0].count),
+        approved: parseInt(approved[0].count),
+        rejected: parseInt(rejected[0].count),
+      },
+      synced_at: new Date().toISOString(),
+      source: 'DATA-KONTRAKTOR-OAP',
+    });
+  } catch (err) {
+    nodeConsole.error('[Integration] Error fetching stats:', err);
+    return c.json({ success: false, error: 'Internal Server Error' }, 500);
+  }
+});
 
 // 4. API Route mounting
 app.route(API_BASENAME, api);
