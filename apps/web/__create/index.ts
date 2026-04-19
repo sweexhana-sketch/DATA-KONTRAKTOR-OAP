@@ -284,7 +284,9 @@ app.get('/api/integration/contractors', async (c) => {
     query += ` ORDER BY created_at DESC LIMIT $${idx}`;
     params.push(limit);
 
+    nodeConsole.log(`[Integration] Executing query: ${query} with params: ${JSON.stringify(params)}`);
     const contractors = await sql(query, params);
+    nodeConsole.log(`[Integration] Found ${contractors.length} contractors`);
 
     return c.json({
       success: true,
@@ -318,6 +320,34 @@ app.get('/api/integration/contractors/:id', async (c) => {
   } catch (err) {
     nodeConsole.error('[Integration] Error fetching contractor by id:', err);
     return c.json({ success: false, error: 'Internal Server Error' }, 500);
+  }
+});
+
+// GET /api/integration/debug-status — Cek koneksi DB & jumlah baris
+app.get('/api/integration/debug-status', async (c) => {
+  try {
+    const totalCount = await sql('SELECT COUNT(*) as count FROM contractors');
+    const sample = await sql('SELECT id, company_name FROM contractors LIMIT 3');
+    const envVars = {
+      has_db_url: !!process.env.DATABASE_URL,
+      db_url_prefix: process.env.DATABASE_URL ? process.env.DATABASE_URL.substring(0, 15) + '...' : 'none'
+    };
+    
+    return c.json({
+      success: true,
+      db_status: 'connected',
+      total_in_db: totalCount[0].count,
+      sample_data: sample,
+      environment: envVars,
+      time: new Date().toISOString()
+    });
+  } catch (err: any) {
+    return c.json({
+      success: false,
+      error: err.message,
+      stack: err.stack,
+      db_status: 'failed'
+    }, 500);
   }
 });
 
