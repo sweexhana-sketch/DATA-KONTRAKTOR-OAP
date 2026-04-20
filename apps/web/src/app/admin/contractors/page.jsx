@@ -8,6 +8,8 @@ import {
   CheckCircle,
   XCircle,
   Clock,
+  Send,
+  ShieldCheck,
 } from "lucide-react";
 
 export default function AdminContractorsPage() {
@@ -17,6 +19,7 @@ export default function AdminContractorsPage() {
   const [userRole, setUserRole] = useState(null);
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [actionLoading, setActionLoading] = useState(null);
 
   useEffect(() => {
     if (!userLoading && !user) {
@@ -68,6 +71,31 @@ export default function AdminContractorsPage() {
     fetchContractors();
   }, [userRole, statusFilter, searchQuery]);
 
+  const handleStatusChange = async (contractorId, newStatus) => {
+    setActionLoading(contractorId);
+    try {
+      const res = await fetch("/api/contractors/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contractor_id: contractorId,
+          status: newStatus,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setContractors((prev) =>
+          prev.map((c) => (c.id === contractorId ? data.contractor : c))
+        );
+      }
+    } catch (error) {
+      console.error("Error updating status:", error);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const getStatusBadge = (status) => {
     const styles = {
       pending: {
@@ -84,12 +112,19 @@ export default function AdminContractorsPage() {
         icon: CheckCircle,
         label: "Approved",
       },
+      ditunjuk: {
+        bg: "bg-blue-50",
+        text: "text-blue-700",
+        border: "border-blue-200",
+        icon: Send,
+        label: "Ditunjuk → SI PRO",
+      },
       rejected: {
         bg: "bg-red-50",
         text: "text-red-700",
         border: "border-red-200",
         icon: XCircle,
-        label: "Rejected",
+        label: "Ditolak",
       },
     };
 
@@ -107,6 +142,8 @@ export default function AdminContractorsPage() {
       </div>
     );
   };
+
+  const countByStatus = (s) => contractors.filter((c) => c.status === s).length;
 
   if (userLoading || !userRole) {
     return (
@@ -129,10 +166,10 @@ export default function AdminContractorsPage() {
           </button>
           <div>
             <h1 className="text-xl font-bold text-[#2A2E45]">
-              Daftar Kontraktor
+              Screening Kontraktor
             </h1>
             <p className="text-sm text-[#8A8FA6]">
-              Dinas PUPR Papua Barat Daya
+              Pilih kontraktor yang akan disinkronkan ke SI PRO
             </p>
           </div>
         </div>
@@ -140,6 +177,39 @@ export default function AdminContractorsPage() {
 
       {/* Content */}
       <div className="max-w-7xl mx-auto p-6">
+
+        {/* Status Summary Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <div className="bg-white border border-[#E4E9F2] rounded-xl p-4">
+            <div className="flex items-center space-x-2 mb-1">
+              <Clock className="w-4 h-4 text-yellow-500" />
+              <span className="text-xs font-medium text-[#8A8FA6]">Pending</span>
+            </div>
+            <span className="text-2xl font-bold text-[#2A2E45]">{countByStatus("pending")}</span>
+          </div>
+          <div className="bg-white border border-[#E4E9F2] rounded-xl p-4">
+            <div className="flex items-center space-x-2 mb-1">
+              <CheckCircle className="w-4 h-4 text-green-500" />
+              <span className="text-xs font-medium text-[#8A8FA6]">Approved</span>
+            </div>
+            <span className="text-2xl font-bold text-[#2A2E45]">{countByStatus("approved")}</span>
+          </div>
+          <div className="bg-white border border-blue-200 rounded-xl p-4 bg-blue-50/30">
+            <div className="flex items-center space-x-2 mb-1">
+              <Send className="w-4 h-4 text-blue-600" />
+              <span className="text-xs font-medium text-blue-600">Ditunjuk → SI PRO</span>
+            </div>
+            <span className="text-2xl font-bold text-blue-700">{countByStatus("ditunjuk")}</span>
+          </div>
+          <div className="bg-white border border-[#E4E9F2] rounded-xl p-4">
+            <div className="flex items-center space-x-2 mb-1">
+              <XCircle className="w-4 h-4 text-red-500" />
+              <span className="text-xs font-medium text-[#8A8FA6]">Ditolak</span>
+            </div>
+            <span className="text-2xl font-bold text-[#2A2E45]">{countByStatus("rejected")}</span>
+          </div>
+        </div>
+
         {/* Filters */}
         <div className="bg-white border border-[#E4E9F2] rounded p-4 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -164,6 +234,7 @@ export default function AdminContractorsPage() {
                 <option value="all">Semua Status</option>
                 <option value="pending">Menunggu Verifikasi</option>
                 <option value="approved">Terverifikasi</option>
+                <option value="ditunjuk">Ditunjuk → SI PRO</option>
                 <option value="rejected">Ditolak</option>
               </select>
             </div>
@@ -199,7 +270,7 @@ export default function AdminContractorsPage() {
                       Status
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-[#6F7689]">
-                      Tanggal Daftar
+                      Tanggal
                     </th>
                     <th className="px-4 py-3 text-center text-xs font-semibold text-[#6F7689]">
                       Aksi
@@ -234,16 +305,59 @@ export default function AdminContractorsPage() {
                           },
                         )}
                       </td>
-                      <td className="px-4 py-3 text-center">
-                        <button
-                          onClick={() =>
-                            (window.location.href = `/admin/contractors/${contractor.id}`)
-                          }
-                          className="inline-flex items-center space-x-1 px-3 py-1 bg-[#EDF3FF] text-[#1570FF] rounded text-xs font-semibold hover:bg-[#DBEAFE]"
-                        >
-                          <Eye className="w-3 h-3" />
-                          <span>Lihat</span>
-                        </button>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-center gap-2">
+                          {/* View Detail */}
+                          <button
+                            onClick={() =>
+                              (window.location.href = `/admin/contractors/${contractor.id}`)
+                            }
+                            className="inline-flex items-center space-x-1 px-2.5 py-1 bg-[#EDF3FF] text-[#1570FF] rounded text-xs font-semibold hover:bg-[#DBEAFE]"
+                            title="Lihat Detail"
+                          >
+                            <Eye className="w-3 h-3" />
+                            <span>Lihat</span>
+                          </button>
+
+                          {/* Approve: show for pending */}
+                          {contractor.status === "pending" && (
+                            <button
+                              onClick={() => handleStatusChange(contractor.id, "approved")}
+                              disabled={actionLoading === contractor.id}
+                              className="inline-flex items-center space-x-1 px-2.5 py-1 bg-green-50 text-green-700 border border-green-200 rounded text-xs font-semibold hover:bg-green-100 disabled:opacity-50"
+                              title="Setujui"
+                            >
+                              <CheckCircle className="w-3 h-3" />
+                              <span>{actionLoading === contractor.id ? "..." : "Setujui"}</span>
+                            </button>
+                          )}
+
+                          {/* Tunjuk untuk SI PRO: show for approved */}
+                          {contractor.status === "approved" && (
+                            <button
+                              onClick={() => handleStatusChange(contractor.id, "ditunjuk")}
+                              disabled={actionLoading === contractor.id}
+                              className="inline-flex items-center space-x-1 px-2.5 py-1 bg-blue-600 text-white rounded text-xs font-semibold hover:bg-blue-700 disabled:opacity-50 shadow-sm"
+                              title="Tunjuk untuk disinkronkan ke SI PRO"
+                            >
+                              <Send className="w-3 h-3" />
+                              <span>{actionLoading === contractor.id ? "..." : "Tunjuk → SI PRO"}</span>
+                            </button>
+                          )}
+
+                          {/* Batalkan penunjukan: show for ditunjuk */}
+                          {contractor.status === "ditunjuk" && (
+                            <button
+                              onClick={() => handleStatusChange(contractor.id, "approved")}
+                              disabled={actionLoading === contractor.id}
+                              className="inline-flex items-center space-x-1 px-2.5 py-1 bg-gray-100 text-gray-600 border border-gray-200 rounded text-xs font-semibold hover:bg-gray-200 disabled:opacity-50"
+                              title="Batalkan penunjukan"
+                            >
+                              <XCircle className="w-3 h-3" />
+                              <span>{actionLoading === contractor.id ? "..." : "Batalkan"}</span>
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -251,6 +365,14 @@ export default function AdminContractorsPage() {
               </table>
             </div>
           )}
+        </div>
+
+        {/* Info box */}
+        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
+          <ShieldCheck className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+          <div className="text-sm text-blue-800">
+            <strong>Alur Screening:</strong> Data kontraktor masuk sebagai <em>Pending</em> → Admin verifikasi menjadi <em>Approved</em> → Admin klik <strong>"Tunjuk → SI PRO"</strong> → Hanya kontraktor berstatus <strong>Ditunjuk</strong> yang akan muncul saat sinkronisasi di aplikasi SI PRO.
+          </div>
         </div>
       </div>
     </div>

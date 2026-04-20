@@ -7,6 +7,7 @@ import {
   Clock,
   Building,
   User,
+  Send,
 } from "lucide-react";
 
 export default function AdminContractorDetailPage({ params }) {
@@ -136,6 +137,50 @@ export default function AdminContractorDetailPage({ params }) {
     );
   }
 
+  const handleDitunjuk = async () => {
+    setActionLoading(true);
+    try {
+      const res = await fetch("/api/contractors/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contractor_id: contractor.id,
+          status: "ditunjuk",
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setContractor(data.contractor);
+      }
+    } catch (error) {
+      console.error("Error setting ditunjuk:", error);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleCancelDitunjuk = async () => {
+    setActionLoading(true);
+    try {
+      const res = await fetch("/api/contractors/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contractor_id: contractor.id,
+          status: "approved",
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setContractor(data.contractor);
+      }
+    } catch (error) {
+      console.error("Error cancelling ditunjuk:", error);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const getStatusBadge = (status) => {
     const styles = {
       pending: {
@@ -151,6 +196,13 @@ export default function AdminContractorDetailPage({ params }) {
         border: "border-green-200",
         icon: CheckCircle,
         label: "Terverifikasi",
+      },
+      ditunjuk: {
+        bg: "bg-blue-50",
+        text: "text-blue-700",
+        border: "border-blue-200",
+        icon: Send,
+        label: "Ditunjuk → SI PRO",
       },
       rejected: {
         bg: "bg-red-50",
@@ -230,6 +282,28 @@ export default function AdminContractorDetailPage({ params }) {
                 </button>
               </div>
             )}
+
+            {contractor.status === "approved" && (
+              <button
+                onClick={handleDitunjuk}
+                disabled={actionLoading}
+                className="px-5 h-9 bg-blue-600 text-white rounded text-sm font-bold hover:bg-blue-700 disabled:opacity-50 flex items-center space-x-2 shadow-sm"
+              >
+                <Send className="w-4 h-4" />
+                <span>{actionLoading ? "Memproses..." : "Tunjuk → SI PRO"}</span>
+              </button>
+            )}
+
+            {contractor.status === "ditunjuk" && (
+              <button
+                onClick={handleCancelDitunjuk}
+                disabled={actionLoading}
+                className="px-4 h-9 bg-gray-100 text-gray-600 border border-gray-300 rounded text-sm font-semibold hover:bg-gray-200 disabled:opacity-50 flex items-center space-x-2"
+              >
+                <XCircle className="w-4 h-4" />
+                <span>{actionLoading ? "Memproses..." : "Batalkan Penunjukan"}</span>
+              </button>
+            )}
           </div>
 
           {contractor.status === "rejected" && contractor.rejection_reason && (
@@ -254,6 +328,20 @@ export default function AdminContractorDetailPage({ params }) {
                   hour: "2-digit",
                   minute: "2-digit",
                 })}
+              </p>
+            </div>
+          )}
+
+          {contractor.status === "ditunjuk" && (
+            <div className="bg-blue-50 border border-blue-200 rounded p-4">
+              <div className="flex items-center gap-2 mb-1">
+                <Send className="w-4 h-4 text-blue-600" />
+                <p className="text-sm font-semibold text-blue-800">
+                  Ditunjuk untuk Sinkronisasi ke SI PRO
+                </p>
+              </div>
+              <p className="text-sm text-blue-700">
+                Kontraktor ini akan muncul saat Admin SI PRO melakukan sinkronisasi data.
               </p>
             </div>
           )}

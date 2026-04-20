@@ -26,7 +26,7 @@ export async function POST(request) {
     if (
       !contractor_id ||
       !status ||
-      !["approved", "rejected"].includes(status)
+      !["approved", "rejected", "ditunjuk"].includes(status)
     ) {
       return Response.json({ error: "Data tidak valid" }, { status: 400 });
     }

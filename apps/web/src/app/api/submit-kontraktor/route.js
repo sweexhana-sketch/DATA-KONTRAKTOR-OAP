@@ -40,7 +40,7 @@ export async function POST(request) {
                         email = ${email || null},
                         small_classification = ${siujkKlasifikasi || null},
                         npwp = ${npwpPerusahaanNo || null},
-                        status = 'approved',
+                        status = 'pending',
                         updated_at = NOW()
                     WHERE nik = ${nikDirektur}
                 `;
@@ -71,7 +71,7 @@ export async function POST(request) {
                         ${email || null},
                         ${siujkKlasifikasi || null},
                         ${npwpPerusahaanNo || null},
-                        'approved'
+                        'pending'
                     )
                 `;
                 console.log(`[DB] Inserted new contractor: ${namaPerusahaan}`);

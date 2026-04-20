@@ -250,10 +250,9 @@ for (const method of ['post', 'put', 'patch'] as const) {
 // Tidak memerlukan cookie session, menggunakan optional API key
 // ═══════════════════════════════════════════════════════════
 
-// GET /api/integration/contractors — daftar semua kontraktor
+// GET /api/integration/contractors — hanya kontraktor yang DITUNJUK
 app.get('/api/integration/contractors', async (c) => {
   try {
-    // Optional API key check (set SIPRO_API_KEY env var to enable strict mode)
     const apiKeyEnv = process.env.SIPRO_API_KEY;
     if (apiKeyEnv) {
       const providedKey = c.req.header('x-api-key') || c.req.query('api_key');
@@ -262,7 +261,7 @@ app.get('/api/integration/contractors', async (c) => {
       }
     }
 
-    const status = c.req.query('status');
+    const status = c.req.query('status') || 'ditunjuk'; // DEFAULT: hanya ditunjuk
     const search = c.req.query('search');
     const limit  = parseInt(c.req.query('limit') || '500', 10);
 
@@ -369,10 +368,11 @@ app.get('/api/integration/stats', async (c) => {
       }
     }
 
-    const [total, pending, approved, rejected] = await Promise.all([
+    const [total, pending, approved, ditunjuk, rejected] = await Promise.all([
       sql`SELECT COUNT(*) as count FROM contractors`,
       sql`SELECT COUNT(*) as count FROM contractors WHERE status = 'pending'`,
       sql`SELECT COUNT(*) as count FROM contractors WHERE status = 'approved'`,
+      sql`SELECT COUNT(*) as count FROM contractors WHERE status = 'ditunjuk'`,
       sql`SELECT COUNT(*) as count FROM contractors WHERE status = 'rejected'`,
     ]);
 
@@ -382,6 +382,7 @@ app.get('/api/integration/stats', async (c) => {
         total: parseInt(total[0].count),
         pending: parseInt(pending[0].count),
         approved: parseInt(approved[0].count),
+        ditunjuk: parseInt(ditunjuk[0].count),
         rejected: parseInt(rejected[0].count),
       },
       synced_at: new Date().toISOString(),
