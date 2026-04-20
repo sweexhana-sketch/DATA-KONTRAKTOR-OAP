@@ -34,7 +34,7 @@ export default function AdminUsersPage() {
         const fetchUserRole = async () => {
             if (user?.id) {
                 try {
-                    const res = await fetch("/api/user/role");
+                    const res = await fetch(`/api/user/role?email=${encodeURIComponent(user.email)}`);
                     if (res.ok) {
                         const data = await res.json();
                         if (data.role !== "admin") {
