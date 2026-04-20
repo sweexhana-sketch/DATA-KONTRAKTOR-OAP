@@ -15,6 +15,8 @@ export default function MakeAdminPage() {
     try {
       const res = await fetch("/api/make-admin", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: user.email }),
       });
 
       if (!res.ok) {
