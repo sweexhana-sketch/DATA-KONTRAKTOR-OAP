@@ -1,16 +1,9 @@
 import sql from "@/app/api/utils/sql";
-import { auth } from "@/auth";
 import { syncToGoogleSheets } from "@/app/api/utils/google-sheets";
 
 // Mendapatkan daftar kontraktor (untuk admin)
 export async function GET(request) {
   try {
-    // Get authentication session, but do not block if it's missing (for SI PRO Integration)
-    const session = await auth();
-    // if (!session?.user?.id) {
-    //   return Response.json({ error: "Unauthorized" }, { status: 401 });
-    // }
-
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
     const search = searchParams.get("search");
