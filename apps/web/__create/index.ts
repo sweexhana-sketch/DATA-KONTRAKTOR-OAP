@@ -327,16 +327,23 @@ app.get('/api/integration/contractors/:id', async (c) => {
 app.get('/api/integration/debug-status', async (c) => {
   try {
     const totalCount = await sql('SELECT COUNT(*) as count FROM contractors');
-    const sample = await sql('SELECT id, company_name FROM contractors LIMIT 3');
+    const tableList = await sql("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'");
+    const columnList = await sql("SELECT column_name FROM information_schema.columns WHERE table_name = 'contractors'");
+    
+    const sample = await sql('SELECT * FROM contractors LIMIT 5');
+    
     const envVars = {
       has_db_url: !!process.env.DATABASE_URL,
-      db_url_prefix: process.env.DATABASE_URL ? process.env.DATABASE_URL.substring(0, 15) + '...' : 'none'
+      db_url_prefix: process.env.DATABASE_URL ? process.env.DATABASE_URL.substring(0, 15) + '...' : 'none',
+      node_env: process.env.NODE_ENV
     };
     
     return c.json({
       success: true,
       db_status: 'connected',
-      total_in_db: totalCount[0].count,
+      total_in_db: totalCount[0]?.count || 0,
+      tables: tableList.map((t: any) => t.table_name),
+      contractor_columns: columnList.map((col: any) => col.column_name),
       sample_data: sample,
       environment: envVars,
       time: new Date().toISOString()
