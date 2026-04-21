@@ -529,7 +529,7 @@ a.site:hover {
       JOIN auth_users au ON au.id = aw.user_id
       JOIN wilayah w ON w.id = aw.wilayah_id
       ORDER BY w.tipe DESC, w.nama ASC
-    `;return Response.json({admins:e})}catch(e){return console.error("GET /api/admin/assign-wilayah error:",e),Response.json({error:"Internal Server Error"},{status:500})}}var rBe=Object.freeze(Object.defineProperty({__proto__:null,GET:tBe,POST:eBe},Symbol.toStringTag,{value:"Module"}));async function nBe(e){let{searchParams:t}=new URL(e.url);if(t.get("key")!=="INIT_MIGRATION_2025")return Response.json({error:"Unauthorized"},{status:401});let n=[];try{return await ae`
+    `;return Response.json({admins:e})}catch(e){return console.error("GET /api/admin/assign-wilayah error:",e),Response.json({error:"Internal Server Error"},{status:500})}}var rBe=Object.freeze(Object.defineProperty({__proto__:null,GET:tBe,POST:eBe},Symbol.toStringTag,{value:"Module"}));async function nBe(e){let{searchParams:t}=new URL(e.url);if(t.get("key")!=="INIT_MIGRATION_2025")return Response.json({error:"Unauthorized"},{status:401});let n=[];try{await ae`
       CREATE TABLE IF NOT EXISTS wilayah (
         id         SERIAL PRIMARY KEY,
         kode       VARCHAR(20) UNIQUE NOT NULL,
@@ -539,14 +539,14 @@ a.site:hover {
       )
     `,n.push("\u2705 Tabel wilayah dibuat"),await ae`
       INSERT INTO wilayah (kode, nama, tipe) VALUES
-        ('KOTA_SOR',  'Kota Sorong',               'kota'),
-        ('KAB_SORSEL','Kabupaten Sorong Selatan',   'kabupaten'),
-        ('KAB_RA',    'Kabupaten Raja Ampat',       'kabupaten'),
-        ('KAB_MAY',   'Kabupaten Maybrat',          'kabupaten'),
-        ('KAB_TAM',   'Kabupaten Tambrauw',         'kabupaten'),
-        ('KAB_MNK',   'Kabupaten Manokwari Selatan','kabupaten')
+        ('KOTA_SOR',  'Kota Sorong',              'kota'),
+        ('KAB_SOR',   'Kabupaten Sorong',          'kabupaten'),
+        ('KAB_SORSEL','Kabupaten Sorong Selatan',  'kabupaten'),
+        ('KAB_MAY',   'Kabupaten Maybrat',         'kabupaten'),
+        ('KAB_TAM',   'Kabupaten Tambrauw',        'kabupaten'),
+        ('KAB_RA',    'Kabupaten Raja Ampat',      'kabupaten')
       ON CONFLICT (kode) DO NOTHING
-    `,n.push("\u2705 Seed data 6 wilayah Papua Barat Daya"),await ae`
+    `,await ae`DELETE FROM wilayah WHERE kode = 'KAB_MNK'`,n.push("\u2705 Seed data 6 wilayah Papua Barat Daya"),await ae`
       ALTER TABLE auth_users
         ADD COLUMN IF NOT EXISTS wilayah_id INTEGER REFERENCES wilayah(id)
     `,n.push("\u2705 Kolom wilayah_id ditambahkan ke auth_users"),await ae`
@@ -563,10 +563,29 @@ a.site:hover {
         created_at  TIMESTAMPTZ DEFAULT NOW(),
         UNIQUE(user_id)
       )
-    `,n.push("\u2705 Tabel admin_wilayah dibuat"),await ae`
+    `,n.push("\u2705 Tabel admin_wilayah dibuat");let a=await ae`SELECT data_type FROM information_schema.columns WHERE table_name = 'contractors' AND column_name = 'id'`,o=a?.[0]?.data_type==="uuid"||a?.[0]?.data_type==="text"?"UUID":"INTEGER",s=`
       CREATE TABLE IF NOT EXISTS penugasan_kontraktor (
         id              SERIAL PRIMARY KEY,
-        contractor_id   INTEGER NOT NULL REFERENCES contractors(id),
+        contractor_id   ${o} NOT NULL REFERENCES contractors(id),
+        wilayah_id      INTEGER NOT NULL REFERENCES wilayah(id),
+        nama_paket      TEXT NOT NULL,
+        tahun_anggaran  INTEGER NOT NULL,
+        tanggal_mulai   DATE NOT NULL,
+        tanggal_selesai DATE NOT NULL,
+        status          VARCHAR(20) DEFAULT 'aktif',
+        assigned_by     TEXT NOT NULL,
+        catatan         TEXT,
+        created_at      TIMESTAMPTZ DEFAULT NOW(),
+        CONSTRAINT no_concurrent_region
+          EXCLUDE USING GIST (
+            contractor_id WITH =,
+            daterange(tanggal_mulai, tanggal_selesai, '[]') WITH &&
+          ) WHERE (status = 'aktif')
+      )
+    `,l=`
+      CREATE TABLE IF NOT EXISTS penugasan_kontraktor (
+        id              SERIAL PRIMARY KEY,
+        contractor_id   ${o} NOT NULL REFERENCES contractors(id),
         wilayah_id      INTEGER NOT NULL REFERENCES wilayah(id),
         nama_paket      TEXT NOT NULL,
         tahun_anggaran  INTEGER NOT NULL,
@@ -577,7 +596,7 @@ a.site:hover {
         catatan         TEXT,
         created_at      TIMESTAMPTZ DEFAULT NOW()
       )
-    `,n.push("\u2705 Tabel penugasan_kontraktor dibuat"),await ae`
+    `;return await ae(l),n.push("\u2705 Tabel penugasan_kontraktor dibuat"),await ae`
       CREATE INDEX IF NOT EXISTS idx_penugasan_contractor
         ON penugasan_kontraktor(contractor_id, status)
     `,await ae`

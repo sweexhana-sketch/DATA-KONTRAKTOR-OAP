@@ -28,17 +28,19 @@ export async function GET(request) {
     `;
     steps.push("✅ Tabel wilayah dibuat");
 
-    // Seed data wilayah Papua Barat Daya
+    // Seed data wilayah Papua Barat Daya (6 kabupaten/kota)
     await sql`
       INSERT INTO wilayah (kode, nama, tipe) VALUES
-        ('KOTA_SOR',  'Kota Sorong',               'kota'),
-        ('KAB_SORSEL','Kabupaten Sorong Selatan',   'kabupaten'),
-        ('KAB_RA',    'Kabupaten Raja Ampat',       'kabupaten'),
-        ('KAB_MAY',   'Kabupaten Maybrat',          'kabupaten'),
-        ('KAB_TAM',   'Kabupaten Tambrauw',         'kabupaten'),
-        ('KAB_MNK',   'Kabupaten Manokwari Selatan','kabupaten')
+        ('KOTA_SOR',  'Kota Sorong',              'kota'),
+        ('KAB_SOR',   'Kabupaten Sorong',          'kabupaten'),
+        ('KAB_SORSEL','Kabupaten Sorong Selatan',  'kabupaten'),
+        ('KAB_MAY',   'Kabupaten Maybrat',         'kabupaten'),
+        ('KAB_TAM',   'Kabupaten Tambrauw',        'kabupaten'),
+        ('KAB_RA',    'Kabupaten Raja Ampat',      'kabupaten')
       ON CONFLICT (kode) DO NOTHING
     `;
+    // Hapus data lama yang salah jika ada
+    await sql`DELETE FROM wilayah WHERE kode = 'KAB_MNK'`;
     steps.push("✅ Seed data 6 wilayah Papua Barat Daya");
 
     // ─── 2. Kolom wilayah_id pada auth_users ───────────────────────────
@@ -70,11 +72,38 @@ export async function GET(request) {
     `;
     steps.push("✅ Tabel admin_wilayah dibuat");
 
+    // Mengecek tipe data dari contractors.id
+    const colType = await sql`SELECT data_type FROM information_schema.columns WHERE table_name = 'contractors' AND column_name = 'id'`;
+    const contractorIdType = colType?.[0]?.data_type === 'uuid' || colType?.[0]?.data_type === 'text' ? 'UUID' : 'INTEGER';
+
     // ─── 4. Tabel penugasan_kontraktor ─────────────────────────────────
-    await sql`
+    const createTableQuery = `
       CREATE TABLE IF NOT EXISTS penugasan_kontraktor (
         id              SERIAL PRIMARY KEY,
-        contractor_id   INTEGER NOT NULL REFERENCES contractors(id),
+        contractor_id   ${contractorIdType} NOT NULL REFERENCES contractors(id),
+        wilayah_id      INTEGER NOT NULL REFERENCES wilayah(id),
+        nama_paket      TEXT NOT NULL,
+        tahun_anggaran  INTEGER NOT NULL,
+        tanggal_mulai   DATE NOT NULL,
+        tanggal_selesai DATE NOT NULL,
+        status          VARCHAR(20) DEFAULT 'aktif',
+        assigned_by     TEXT NOT NULL,
+        catatan         TEXT,
+        created_at      TIMESTAMPTZ DEFAULT NOW(),
+        CONSTRAINT no_concurrent_region
+          EXCLUDE USING GIST (
+            contractor_id WITH =,
+            daterange(tanggal_mulai, tanggal_selesai, '[]') WITH &&
+          ) WHERE (status = 'aktif')
+      )
+    `;
+    
+    // Some postgres versions might complain about the EXCLUDE constraint if btree_gist is not installed
+    // Let's create it without the EXCLUDE constraint first, we will manage collision via API
+    const createTableQuerySafe = `
+      CREATE TABLE IF NOT EXISTS penugasan_kontraktor (
+        id              SERIAL PRIMARY KEY,
+        contractor_id   ${contractorIdType} NOT NULL REFERENCES contractors(id),
         wilayah_id      INTEGER NOT NULL REFERENCES wilayah(id),
         nama_paket      TEXT NOT NULL,
         tahun_anggaran  INTEGER NOT NULL,
@@ -86,6 +115,8 @@ export async function GET(request) {
         created_at      TIMESTAMPTZ DEFAULT NOW()
       )
     `;
+
+    await sql(createTableQuerySafe);
     steps.push("✅ Tabel penugasan_kontraktor dibuat");
 
     // Index untuk performa
