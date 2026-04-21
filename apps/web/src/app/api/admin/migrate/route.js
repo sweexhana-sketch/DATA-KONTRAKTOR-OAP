@@ -72,38 +72,13 @@ export async function GET(request) {
     `;
     steps.push("✅ Tabel admin_wilayah dibuat");
 
-    // Mengecek tipe data dari contractors.id
-    const colType = await sql`SELECT data_type FROM information_schema.columns WHERE table_name = 'contractors' AND column_name = 'id'`;
-    const contractorIdType = colType?.[0]?.data_type === 'uuid' || colType?.[0]?.data_type === 'text' ? 'UUID' : 'INTEGER';
-
     // ─── 4. Tabel penugasan_kontraktor ─────────────────────────────────
-    const createTableQuery = `
+    // WE USE TEXT FOR contractor_id TO AVOID INTEGER/UUID Foreign Key MISMATCHES.
+    // Application logic ensures validity.
+    await sql`
       CREATE TABLE IF NOT EXISTS penugasan_kontraktor (
         id              SERIAL PRIMARY KEY,
-        contractor_id   ${contractorIdType} NOT NULL REFERENCES contractors(id),
-        wilayah_id      INTEGER NOT NULL REFERENCES wilayah(id),
-        nama_paket      TEXT NOT NULL,
-        tahun_anggaran  INTEGER NOT NULL,
-        tanggal_mulai   DATE NOT NULL,
-        tanggal_selesai DATE NOT NULL,
-        status          VARCHAR(20) DEFAULT 'aktif',
-        assigned_by     TEXT NOT NULL,
-        catatan         TEXT,
-        created_at      TIMESTAMPTZ DEFAULT NOW(),
-        CONSTRAINT no_concurrent_region
-          EXCLUDE USING GIST (
-            contractor_id WITH =,
-            daterange(tanggal_mulai, tanggal_selesai, '[]') WITH &&
-          ) WHERE (status = 'aktif')
-      )
-    `;
-    
-    // Some postgres versions might complain about the EXCLUDE constraint if btree_gist is not installed
-    // Let's create it without the EXCLUDE constraint first, we will manage collision via API
-    const createTableQuerySafe = `
-      CREATE TABLE IF NOT EXISTS penugasan_kontraktor (
-        id              SERIAL PRIMARY KEY,
-        contractor_id   ${contractorIdType} NOT NULL REFERENCES contractors(id),
+        contractor_id   TEXT NOT NULL,
         wilayah_id      INTEGER NOT NULL REFERENCES wilayah(id),
         nama_paket      TEXT NOT NULL,
         tahun_anggaran  INTEGER NOT NULL,
@@ -116,7 +91,6 @@ export async function GET(request) {
       )
     `;
 
-    await sql(createTableQuerySafe);
     steps.push("✅ Tabel penugasan_kontraktor dibuat");
 
     // Index untuk performa
