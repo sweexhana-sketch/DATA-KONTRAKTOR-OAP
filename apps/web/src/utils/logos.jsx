@@ -20,7 +20,6 @@ export const WILAYAH_LOGOS = {
 
 export const ALL_LOGOS = [
   { id: 'pbd', src: pbd, alt: 'Papua Barat Daya', isProv: true },
-  { id: 'pb', src: CO_ADMIN_LOGO, alt: 'Papua Barat (Co-Admin)', isProv: true },
   { id: 'KOTA_SOR', src: kotaSorong, alt: 'Kota Sorong' },
   { id: 'KAB_SOR', src: sorong, alt: 'Kabupaten Sorong' },
   { id: 'KAB_SORSEL', src: sorongSelatan, alt: 'Kabupaten Sorong Selatan' },
@@ -34,9 +33,6 @@ export function LogoRow({ className = "" }) {
     <div className={`flex items-center gap-3 sm:gap-4 flex-wrap ${className}`}>
       {ALL_LOGOS.map((l) => (
         <div key={l.id} className="relative group">
-           {l.id === 'pb' && (
-             <div className="absolute -top-3 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-amber-500 text-black text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded shadow-lg pointer-events-none whitespace-nowrap z-10">Co-Admin</div>
-           )}
            <img
              src={l.src?.src || l.src}
              alt={l.alt}
