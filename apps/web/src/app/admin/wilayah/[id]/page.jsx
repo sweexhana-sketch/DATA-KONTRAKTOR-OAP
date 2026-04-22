@@ -2,12 +2,13 @@ import { useState, useEffect } from "react";
 import { useSession } from "@auth/create/react";
 import logoPBD from "@/assets/logo-papua-barat-daya.png";
 import { useParams } from "react-router";
+import { WILAYAH_LOGOS, ALL_LOGOS } from "@/utils/logos";
 
 const STATUS_MAP = {
   aktif:      { label: "Aktif",      dot: "bg-green-500",  text: "text-green-400",  bg: "bg-green-500/10 border-green-500/20" },
   selesai:    { label: "Selesai",    dot: "bg-blue-500",   text: "text-blue-400",   bg: "bg-blue-500/10 border-blue-500/20" },
   dibatalkan: { label: "Dibatalkan", dot: "bg-slate-500",  text: "text-slate-400",  bg: "bg-slate-500/10 border-slate-500/20" },
-import { WILAYAH_LOGOS, ALL_LOGOS } from "@/utils/logos";
+};
 
 function fmtDate(d) {
   return d ? new Date(d).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }) : "—";
