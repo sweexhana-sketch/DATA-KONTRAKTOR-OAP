@@ -185,9 +185,15 @@ export default function HomePage() {
               }
             </p>
 
-            <div className="mt-6 md:mt-8 pt-5 border-t border-white/10 md:w-max">
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Sistem Terintegrasi 6 Kabupaten/Kota Papua Barat Daya:</p>
-              <LogoRow />
+            <div className="mt-8 pt-8 border-t border-white/10 md:w-max">
+              <div className="flex items-center gap-3 mb-4">
+                 <span className="h-px bg-gradient-to-r from-amber-500/50 to-transparent flex-1" />
+                 <p className="text-[10px] font-black text-amber-500/80 uppercase tracking-[0.2em]">Otoritas Sistem Terintegrasi</p>
+              </div>
+              <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 backdrop-blur-xl shadow-[0_0_30px_rgba(0,0,0,0.5)] relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 blur-3xl rounded-full pointer-events-none group-hover:bg-amber-500/20 transition-all duration-700" />
+                <LogoRow />
+              </div>
             </div>
           </div>
         </div>

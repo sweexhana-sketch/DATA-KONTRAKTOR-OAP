@@ -236,9 +236,15 @@ export default function SignInPage() {
             Platform resmi pengelolaan data profil perusahaan dan tenaga ahli untuk Kontraktor Orang Asli Papua (OAP) Provinsi Papua Barat Daya.
           </p>
 
-          <div className="pt-2">
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Terintegrasi Dengan:</p>
-            <LogoRow className="justify-center lg:justify-start" />
+          <div className="pt-6 mt-6 border-t border-white/5">
+            <div className="flex items-center gap-3 mb-4">
+               <span className="h-px bg-gradient-to-r from-amber-500/50 to-transparent flex-1" />
+               <p className="text-[10px] font-black text-amber-500/80 uppercase tracking-[0.2em]">Otoritas Sistem Terintegrasi</p>
+            </div>
+            <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 backdrop-blur-xl shadow-[0_0_30px_rgba(0,0,0,0.5)] relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 blur-3xl rounded-full pointer-events-none group-hover:bg-amber-500/20 transition-all duration-700" />
+              <LogoRow className="justify-center lg:justify-start" />
+            </div>
           </div>
 
           <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-4 opacity-80">
