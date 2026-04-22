@@ -1,9 +1,9 @@
-import maybrat from "@/Logo/kabupaten maybrat.jpg";
-import rajaAmpat from "@/Logo/kabupaten raja ampat.jpg";
-import sorongSelatan from "@/Logo/kabupaten sorong selatan.jpg";
-import sorong from "@/Logo/kabupaten sorong.jpg";
-import tambrauw from "@/Logo/kabupaten tambrauw.jpg";
-import kotaSorong from "@/Logo/kota sorong.jpg";
+import maybrat from "@/Logo/kabupaten maybrat.png";
+import rajaAmpat from "@/Logo/kabupaten raja ampat.png";
+import sorongSelatan from "@/Logo/kabupaten sorong selatan.png";
+import sorong from "@/Logo/kabupaten sorong.png";
+import tambrauw from "@/Logo/kabupaten tambrauw.png";
+import kotaSorong from "@/Logo/kota sorong.png";
 import pbd from "@/assets/logo-papua-barat-daya.png";
 
 export const PROVINCE_LOGO = pbd;
