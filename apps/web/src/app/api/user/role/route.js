@@ -16,14 +16,17 @@ export async function GET(request) {
     } catch {}
 
     const result = await sql`
-      SELECT role FROM auth_users WHERE email = ${email}
+      SELECT role, wilayah_id FROM auth_users WHERE email = ${email}
     `;
 
     if (result.length === 0) {
       return Response.json({ role: "kontraktor" });
     }
 
-    return Response.json({ role: result[0].role || "kontraktor" });
+    return Response.json({ 
+      role: result[0].role || "kontraktor",
+      wilayah_id: result[0].wilayah_id 
+    });
   } catch (error) {
     console.error("Error fetching user role:", error);
     return Response.json({ role: "kontraktor" });

@@ -54,6 +54,8 @@ export default function PenugasanBaruPage() {
   const [wilayahList, setWilayahList]         = useState([]);
   const [contractorList, setContractorList]   = useState([]);
   const [loadingRef, setLoadingRef]           = useState(true);
+  const [userRole, setUserRole]               = useState(null);
+  const [userWilayahId, setUserWilayahId]     = useState(null);
 
   // Form state
   const [form, setForm] = useState({
@@ -92,10 +94,18 @@ export default function PenugasanBaruPage() {
     Promise.all([
       fetch("/api/wilayah").then(r => r.json()),
       fetch("/api/contractors?status=approved").then(r => r.json()),
-    ]).then(([wd, cd]) => {
+      fetch(`/api/user/role?email=${encodeURIComponent(session.user.email)}`).then(r => r.json())
+    ]).then(([wd, cd, roleData]) => {
       setWilayahList(wd.wilayah || []);
       // Include approved + ditunjuk (ditunjuk might become available)
       setContractorList(cd.contractors || []);
+      setUserRole(roleData.role);
+      setUserWilayahId(roleData.wilayah_id);
+
+      // Lock dropdown if admin_wilayah
+      if (roleData.role === "admin_wilayah" && roleData.wilayah_id) {
+        setForm(p => ({ ...p, wilayah_id: roleData.wilayah_id }));
+      }
       setLoadingRef(false);
     });
   }, [status]);
@@ -262,7 +272,12 @@ export default function PenugasanBaruPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Wilayah Penugasan <span className="text-amber-500">*</span></label>
-                  <select value={form.wilayah_id} onChange={set("wilayah_id")} className={selectCls}>
+                  <select 
+                    value={form.wilayah_id} 
+                    onChange={set("wilayah_id")} 
+                    className={selectCls}
+                    disabled={userRole === "admin_wilayah"}
+                  >
                     <option value="">— Pilih Kabupaten/Kota —</option>
                     {wilayahList.map(w => (
                       <option key={w.id} value={w.id}>
@@ -270,6 +285,9 @@ export default function PenugasanBaruPage() {
                       </option>
                     ))}
                   </select>
+                  {userRole === "admin_wilayah" && (
+                    <p className="text-amber-400 text-[10px] mt-2 font-bold tracking-wider">🔒 TERKUNCI UNTUK WILAYAH ANDA</p>
+                  )}
                 </div>
 
                 <div>
