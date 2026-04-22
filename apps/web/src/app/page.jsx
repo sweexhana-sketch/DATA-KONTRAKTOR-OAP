@@ -67,7 +67,6 @@ const ACCENT = {
 export default function HomePage() {
   const { data: user, loading: userLoading } = useUser();
   const [userRole, setUserRole] = useState(null);
-  const [userWilayahId, setUserWilayahId] = useState(null);
   const [roleLoading, setRoleLoading] = useState(true);
 
   useEffect(() => {
@@ -82,7 +81,6 @@ export default function HomePage() {
           if (res.ok) {
             const data = await res.json();
             setUserRole(data.role);
-            setUserWilayahId(data.wilayah_id);
           }
         } catch (error) {
           console.error("Error fetching user role:", error);
@@ -94,25 +92,8 @@ export default function HomePage() {
     fetchUserRole();
   }, [user]);
 
-  let menus = USER_MENUS;
-  let isAdmin = false;
-
-  if (['admin', 'admin_provinsi'].includes(userRole)) {
-    isAdmin = true;
-    menus = ADMIN_MENUS;
-  } else if (userRole === 'admin_wilayah') {
-    isAdmin = true;
-    menus = [
-      {
-        href: userWilayahId ? `/admin/wilayah/${userWilayahId}` : "#",
-        icon: "M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7",
-        label: "Dashboard Wilayah Anda",
-        desc: "Kelola penugasan dan pengawasan kontraktor khusus di wilayah kerja Anda",
-        accent: "cyan",
-        badge: "Ruang Kerja",
-      }
-    ];
-  }
+  const isAdmin = userRole && ['admin', 'admin_provinsi', 'admin_wilayah'].includes(userRole);
+  const menus = isAdmin ? ADMIN_MENUS : USER_MENUS;
 
   const roleLabel = {
     admin: "Administrator",
@@ -256,10 +237,8 @@ export default function HomePage() {
           <div>
             <div className="text-sm font-bold text-blue-300 mb-1">Informasi Penting</div>
             <p className="text-xs text-slate-400 leading-relaxed">
-              {['admin', 'admin_provinsi'].includes(userRole)
+              {isAdmin
                 ? "Sebagai admin, Anda dapat melihat, memverifikasi, dan mengelola semua data kontraktor yang terdaftar. Gunakan menu Peta Wilayah untuk mengelola penugasan kontraktor per kabupaten/kota."
-                : userRole === 'admin_wilayah'
-                ? "Sebagai Admin Wilayah, Anda memiliki akses kelola eksklusif hanya untuk memantau, dan menunjuk operasional data proyek pada kabupaten/kota Anda."
                 : "Pastikan data yang Anda masukkan sesuai dengan dokumen resmi. Data akan diverifikasi oleh admin PUPR Provinsi Papua Barat Daya sebelum terintegrasi ke SI PRO."
               }
             </p>

@@ -23,17 +23,7 @@ export default function AdminWilayahPage() {
 
   useEffect(() => {
     if (status === "unauthenticated") { window.location.href = "/account/signin"; return; }
-    if (status === "authenticated") {
-      fetch(`/api/user/role?email=${encodeURIComponent(session.user.email)}`)
-        .then(r => r.json())
-        .then(data => {
-          if (data.role === 'admin_wilayah' && data.wilayah_id) {
-            window.location.href = `/admin/wilayah/${data.wilayah_id}`;
-          } else {
-            fetchAll();
-          }
-        });
-    }
+    if (status === "authenticated") fetchAll();
   }, [status]);
 
   const fetchAll = async () => {

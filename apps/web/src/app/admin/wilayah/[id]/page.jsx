@@ -9,6 +9,15 @@ const STATUS_MAP = {
   dibatalkan: { label: "Dibatalkan", dot: "bg-slate-500",  text: "text-slate-400",  bg: "bg-slate-500/10 border-slate-500/20" },
 };
 
+const WILAYAH_LOGOS = {
+  'KOTA_SOR':   'https://upload.wikimedia.org/wikipedia/commons/2/23/Lambang_Kota_Sorong.png',
+  'KAB_SOR':    'https://upload.wikimedia.org/wikipedia/commons/e/ee/Lambang_Kabupaten_Sorong.png',
+  'KAB_SORSEL': 'https://upload.wikimedia.org/wikipedia/commons/b/b5/Lambang_Kabupaten_Sorong_Selatan.png',
+  'KAB_MAY':    'https://upload.wikimedia.org/wikipedia/commons/0/05/Lambang_Kab_Maybrat.png',
+  'KAB_TAM':    'https://upload.wikimedia.org/wikipedia/commons/3/3b/Tambrauw_COA.svg',
+  'KAB_RA':     'https://upload.wikimedia.org/wikipedia/commons/5/52/Lambar_Kabupaten_Raja_Ampat.png'
+};
+
 function fmtDate(d) {
   return d ? new Date(d).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }) : "—";
 }
@@ -81,15 +90,29 @@ export default function AdminWilayahDetailPage() {
       </div>
 
       {/* Header */}
-      <header className="relative z-30 sticky top-0 bg-[#0f172a]/80 backdrop-blur-xl border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-20">
-          <div className="flex items-center gap-4">
-            <button onClick={() => window.location.href = "/admin/wilayah"} className="w-10 h-10 rounded-xl border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all">
+      <header className="relative z-30 sticky top-0 bg-[#0f172a]/90 backdrop-blur-xl border-b border-white/10 shadow-2xl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-24">
+          <div className="flex items-center gap-4 sm:gap-6">
+            <button key="back-btn" onClick={() => window.location.href = "/admin/wilayah"} className="hidden sm:flex w-10 h-10 flex-shrink-0 rounded-xl border border-white/10 items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
             </button>
+            
+            {/* Dual Logos (Provinsi + Kabupaten/Kota) */}
+            <div className="flex items-center gap-3 md:gap-4 bg-white/5 px-3 py-2 rounded-2xl border border-white/10">
+              <img src={logoPBD.src || logoPBD} alt="Provinsi Papua Barat Daya" className="w-10 h-10 object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.15)] hover:scale-110 transition-transform" />
+              <div className="h-8 w-px bg-white/10" />
+              {wilayah?.kode && WILAYAH_LOGOS[wilayah.kode] ? (
+                <img src={WILAYAH_LOGOS[wilayah.kode]} alt={wilayah.nama} className="w-10 h-10 object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.15)] hover:scale-110 transition-transform" />
+              ) : (
+                <div className="w-10 h-10 flex items-center justify-center text-2xl drop-shadow-[0_0_8px_rgba(255,255,255,0.15)]">
+                   {wilayah?.tipe === "kota" ? "🏙️" : "🏔️"}
+                </div>
+              )}
+            </div>
+
             <div>
-              <div className="text-[10px] text-amber-500 uppercase tracking-widest font-bold">{wilayah?.tipe}</div>
-              <div className="text-base font-black text-white">{wilayah?.nama}</div>
+              <div className="text-[10px] text-amber-500 uppercase tracking-widest font-bold">Dinas PUPR - {wilayah?.tipe}</div>
+              <div className="text-base sm:text-lg font-black text-white">{wilayah?.nama}</div>
             </div>
           </div>
           <button
