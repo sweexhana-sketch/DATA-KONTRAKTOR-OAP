@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { signOut, useSession } from "@auth/create/react";
 import logoPBD from "@/assets/logo-papua-barat-daya.png";
+import { LogoRow } from "@/utils/logos";
 
 const TABS = [
     { id: "identitas", label: "Identitas Perusahaan", icon: "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" },
@@ -230,6 +231,11 @@ export default function DashboardPage() {
                         <p className="text-slate-400 text-sm sm:text-base max-w-2xl leading-relaxed">
                             Selamat datang, <strong className="text-amber-400">{session?.user?.name}</strong>. Silakan lengkapi data profil perusahaan secara akurat. Data yang diinput akan divalidasi dan terintegrasi langsung dengan ekosistem SI PRO.
                         </p>
+
+                        <div className="mt-6 md:mt-8 pt-5 border-t border-white/10 md:w-max">
+                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Terhubung ke Kabupaten/Kota se-Papua Barat Daya:</p>
+                            <LogoRow />
+                        </div>
                     </div>
                 </div>
 

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSession } from "@auth/create/react";
 import logoPBD from "@/assets/logo-papua-barat-daya.png";
+import { WILAYAH_LOGOS } from "@/utils/logos";
 
 const WILAYAH_COLORS = {
   KOTA_SOR:   { from: "from-amber-500/20",  to: "to-orange-500/10",  border: "border-amber-500/30",  accent: "text-amber-400",  icon: "🏙️" },
@@ -184,7 +185,11 @@ export default function AdminWilayahPage() {
                       </span>
                       <h3 className="text-xl font-black text-white mt-2 leading-tight">{w.nama}</h3>
                     </div>
-                    <span className="text-3xl">{color.icon}</span>
+                    {WILAYAH_LOGOS[w.kode] ? (
+                      <img src={WILAYAH_LOGOS[w.kode]?.src || WILAYAH_LOGOS[w.kode]} className="w-12 h-12 object-contain drop-shadow-[0_0_12px_rgba(255,255,255,0.15)] group-hover:scale-110 transition-transform" alt="Logo" />
+                    ) : (
+                      <span className="text-3xl">{color.icon}</span>
+                    )}
                   </div>
 
                   {/* Admin badge */}

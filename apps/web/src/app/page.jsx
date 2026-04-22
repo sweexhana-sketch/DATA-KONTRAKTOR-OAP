@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import useUser from "@/utils/useUser";
 import logoPBD from "@/assets/logo-papua-barat-daya.png";
+import { LogoRow } from "@/utils/logos";
 
 const ADMIN_MENUS = [
   {
@@ -183,6 +184,11 @@ export default function HomePage() {
                 : "Lengkapi data perusahaan Anda agar dapat diverifikasi oleh Admin Dinas PUPR dan terintegrasi dengan ekosistem SI PRO."
               }
             </p>
+
+            <div className="mt-6 md:mt-8 pt-5 border-t border-white/10 md:w-max">
+              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Sistem Terintegrasi 6 Kabupaten/Kota Papua Barat Daya:</p>
+              <LogoRow />
+            </div>
           </div>
         </div>
 

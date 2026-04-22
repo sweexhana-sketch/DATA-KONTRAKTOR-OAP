@@ -1,5 +1,6 @@
 import { useState } from "react";
 import logoPBD from "@/assets/logo-papua-barat-daya.png";
+import { LogoRow } from "@/utils/logos";
 
 /* ── Ikon ── */
 function EyeIcon() {
@@ -188,6 +189,11 @@ export default function SignUpPage() {
           <p className="text-sm lg:text-base text-slate-400 leading-relaxed max-w-md mx-auto lg:mx-0">
             Daftarkan perusahaan Anda dalam ekosistem Kontraktor Orang Asli Papua (OAP) Provinsi Papua Barat Daya untuk mendapatkan akses penuh.
           </p>
+
+          <div className="pt-2">
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Terintegrasi Dengan:</p>
+            <LogoRow className="justify-center lg:justify-start" />
+          </div>
         </div>
 
         {/* Right Panel - Signup Card */}

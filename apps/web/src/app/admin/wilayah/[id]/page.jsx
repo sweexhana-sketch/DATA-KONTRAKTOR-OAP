@@ -7,16 +7,7 @@ const STATUS_MAP = {
   aktif:      { label: "Aktif",      dot: "bg-green-500",  text: "text-green-400",  bg: "bg-green-500/10 border-green-500/20" },
   selesai:    { label: "Selesai",    dot: "bg-blue-500",   text: "text-blue-400",   bg: "bg-blue-500/10 border-blue-500/20" },
   dibatalkan: { label: "Dibatalkan", dot: "bg-slate-500",  text: "text-slate-400",  bg: "bg-slate-500/10 border-slate-500/20" },
-};
-
-const WILAYAH_LOGOS = {
-  'KOTA_SOR':   'https://upload.wikimedia.org/wikipedia/commons/2/23/Lambang_Kota_Sorong.png',
-  'KAB_SOR':    'https://upload.wikimedia.org/wikipedia/commons/e/ee/Lambang_Kabupaten_Sorong.png',
-  'KAB_SORSEL': 'https://upload.wikimedia.org/wikipedia/commons/b/b5/Lambang_Kabupaten_Sorong_Selatan.png',
-  'KAB_MAY':    'https://upload.wikimedia.org/wikipedia/commons/0/05/Lambang_Kab_Maybrat.png',
-  'KAB_TAM':    'https://upload.wikimedia.org/wikipedia/commons/3/3b/Tambrauw_COA.svg',
-  'KAB_RA':     'https://upload.wikimedia.org/wikipedia/commons/5/52/Lambar_Kabupaten_Raja_Ampat.png'
-};
+import { WILAYAH_LOGOS, ALL_LOGOS } from "@/utils/logos";
 
 function fmtDate(d) {
   return d ? new Date(d).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }) : "—";
@@ -102,7 +93,7 @@ export default function AdminWilayahDetailPage() {
               <img src={logoPBD.src || logoPBD} alt="Provinsi Papua Barat Daya" className="w-10 h-10 object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.15)] hover:scale-110 transition-transform" />
               <div className="h-8 w-px bg-white/10" />
               {wilayah?.kode && WILAYAH_LOGOS[wilayah.kode] ? (
-                <img src={WILAYAH_LOGOS[wilayah.kode]} alt={wilayah.nama} className="w-10 h-10 object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.15)] hover:scale-110 transition-transform" />
+                <img src={WILAYAH_LOGOS[wilayah.kode]?.src || WILAYAH_LOGOS[wilayah.kode]} alt={wilayah.nama} className="w-10 h-10 object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.15)] hover:scale-110 transition-transform" />
               ) : (
                 <div className="w-10 h-10 flex items-center justify-center text-2xl drop-shadow-[0_0_8px_rgba(255,255,255,0.15)]">
                    {wilayah?.tipe === "kota" ? "🏙️" : "🏔️"}
