@@ -37,7 +37,7 @@ export function LogoRow({ className = "" }) {
              src={l.src?.src || l.src}
              alt={l.alt}
              title={l.alt}
-             className={`object-contain bg-white/5 rounded-xl p-1.5 border border-white/10 ${l.isProv ? "w-10 h-10 sm:w-16 sm:h-16 shadow-[0_0_15px_rgba(255,255,255,0.1)]" : "w-8 h-8 sm:w-12 sm:h-12"} hover:scale-110 hover:border-amber-500/50 hover:bg-amber-500/10 transition-all cursor-pointer`}
+             className={`object-contain transition-all duration-300 drop-shadow-lg cursor-pointer ${l.isProv ? "w-12 h-12 sm:w-16 sm:h-16" : "w-10 h-10 sm:w-14 sm:h-14"} hover:scale-110 hover:drop-shadow-[0_0_15px_rgba(245,158,11,0.5)]`}
            />
         </div>
       ))}
