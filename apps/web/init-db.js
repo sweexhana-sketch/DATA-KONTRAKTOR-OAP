@@ -18,7 +18,7 @@ async function initDb() {
         `;
         console.log('Table auth_users ready.');
 
-        const email = 'admin@example.com';
+        const email = 'hanasweex@gmail.com';
         const existing = await sql`SELECT id FROM auth_users WHERE email = ${email}`;
 
         if (existing.length === 0) {
@@ -29,7 +29,7 @@ async function initDb() {
                 INSERT INTO auth_users (id, email, name, password, role)
                 VALUES (${id}, ${email}, 'Admin Test', ${hashedPassword}, 'admin')
             `;
-            console.log('Test admin user created: admin@example.com / password123');
+            console.log('Test admin user created: hanasweex@gmail.com / password123');
         } else {
             console.log('Test admin user already exists.');
         }
