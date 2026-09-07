@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = import.meta.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 let supabase = null;
 if (supabaseUrl && supabaseAnonKey) {
@@ -16,7 +16,7 @@ function useUpload() {
       setLoading(true);
       
       if (!supabase) {
-        throw new Error("Kredensial Supabase (VITE_SUPABASE_URL dan VITE_SUPABASE_ANON_KEY) belum dikonfigurasi di file .env");
+        throw new Error("Kredensial Supabase (NEXT_PUBLIC_SUPABASE_URL dan NEXT_PUBLIC_SUPABASE_ANON_KEY) belum dikonfigurasi.");
       }
       
       let fileBody;
