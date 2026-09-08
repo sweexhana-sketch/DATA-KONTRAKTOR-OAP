@@ -1,9 +1,15 @@
 import sql from "@/app/api/utils/sql";
+import { auth } from "@/auth";
+import { requireAdmin } from "@/app/api/utils/require-admin";
 import { syncToGoogleSheets } from "@/app/api/utils/google-sheets";
 
-// Mendapatkan daftar kontraktor (untuk admin)
+// Mendapatkan daftar kontraktor (hanya untuk admin)
 export async function GET(request) {
   try {
+    // Hanya admin yang bisa melihat SEMUA data kontraktor
+    const check = await requireAdmin();
+    if (check.error) return check.error;
+
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
     const search = searchParams.get("search");

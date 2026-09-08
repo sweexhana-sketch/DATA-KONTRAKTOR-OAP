@@ -1,24 +1,14 @@
 import sql from "@/app/api/utils/sql";
-import { auth } from "@/auth";
+import { requireAdmin } from "@/app/api/utils/require-admin";
 import { syncToGoogleSheets } from "@/app/api/utils/google-sheets";
 
 // Verifikasi/Approve atau Reject kontraktor (Admin only)
 export async function POST(request) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const check = await requireAdmin();
+    if (check.error) return check.error;
+    const session = check.session;
 
-    // Cek apakah user adalah admin
-    const adminCheck =
-      await sql`SELECT role FROM auth_users WHERE id = ${session.user.id}`;
-    if (!adminCheck[0] || adminCheck[0].role !== "admin") {
-      return Response.json(
-        { error: "Hanya admin yang dapat melakukan verifikasi" },
-        { status: 403 },
-      );
-    }
 
     const body = await request.json();
     const { contractor_id, status, rejection_reason } = body;

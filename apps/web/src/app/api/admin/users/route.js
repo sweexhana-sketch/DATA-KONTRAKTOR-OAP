@@ -1,21 +1,12 @@
 import sql from "@/app/api/utils/sql";
-import { auth } from "@/auth";
+import { requireAdmin } from "@/app/api/utils/require-admin";
 
 // GET /api/admin/users — Admin only: list all registered users with contractor submission status
 export async function GET(request) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Verify admin role
-    const roleCheck = await sql`
-      SELECT role FROM auth_users WHERE id = ${session.user.id}
-    `;
-    if (!roleCheck[0] || roleCheck[0].role !== "admin") {
-      return Response.json({ error: "Forbidden" }, { status: 403 });
-    }
+    const check = await requireAdmin();
+    if (check.error) return check.error;
+    const session = check.session;
 
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search") || "";

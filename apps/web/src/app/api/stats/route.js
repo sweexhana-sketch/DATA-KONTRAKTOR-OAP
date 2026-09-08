@@ -1,8 +1,12 @@
 import sql from "@/app/api/utils/sql";
+import { requireAdmin } from "@/app/api/utils/require-admin";
 
-// Mendapatkan statistik untuk dashboard admin — no auth() needed
+// Mendapatkan statistik untuk dashboard admin — hanya admin
 export async function GET(request) {
   try {
+    const check = await requireAdmin();
+    if (check.error) return check.error;
+
     const [totalContractors, pendingApprovals, approvedContractors, ditunjukContractors, rejectedContractors, recentSubmissions] =
       await Promise.all([
         sql`SELECT COUNT(*) as count FROM contractors`,

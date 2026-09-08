@@ -1,2 +1,7 @@
 node_modules
 .vercel
+
+# Environment Variables
+.env
+.env.local
+.env.*

@@ -22,6 +22,21 @@ export async function POST(request) {
       description,
     } = body;
 
+    if (!contractor_id || !project_name) {
+      return Response.json({ error: "Data tidak lengkap" }, { status: 400 });
+    }
+
+    // Ownership Check: pastikan kontraktor ini milik user yang sedang login
+    const selfRole = await sql`SELECT role FROM auth_users WHERE id = ${session.user.id}`;
+    const isAdmin = selfRole[0]?.role === "admin";
+
+    if (!isAdmin) {
+      const ownerCheck = await sql`SELECT user_id FROM contractors WHERE id = ${contractor_id}`;
+      if (!ownerCheck[0] || ownerCheck[0].user_id !== session.user.id) {
+        return Response.json({ error: "Forbidden" }, { status: 403 });
+      }
+    }
+
     const result = await sql`
       INSERT INTO projects (
         contractor_id, project_name, project_location, project_value,
@@ -39,3 +54,4 @@ export async function POST(request) {
     return Response.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
+

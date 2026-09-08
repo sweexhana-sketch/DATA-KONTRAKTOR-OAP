@@ -1,21 +1,12 @@
 import sql from "@/app/api/utils/sql";
-import { auth } from "@/auth";
+import { requireAdmin } from "@/app/api/utils/require-admin";
 
 // POST /api/admin/users/[id] — Admin only: update a user's role
 export async function POST(request, { params }) {
     try {
-        const session = await auth();
-        if (!session?.user?.id) {
-            return Response.json({ error: "Unauthorized" }, { status: 401 });
-        }
-
-        // Verify admin role
-        const roleCheck = await sql`
-      SELECT role FROM auth_users WHERE id = ${session.user.id}
-    `;
-        if (!roleCheck[0] || roleCheck[0].role !== "admin") {
-            return Response.json({ error: "Forbidden" }, { status: 403 });
-        }
+        const check = await requireAdmin();
+        if (check.error) return check.error;
+        const session = check.session;
 
         const { role } = await request.json();
         if (!["admin", "user", "kontraktor"].includes(role)) {

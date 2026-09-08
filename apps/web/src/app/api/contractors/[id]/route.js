@@ -2,7 +2,7 @@ import sql from "@/app/api/utils/sql";
 import { auth } from "@/auth";
 import { syncToGoogleSheets } from "@/app/api/utils/google-sheets";
 
-// Mendapatkan detail kontraktor
+// Mendapatkan detail kontraktor (pemilik atau admin)
 export async function GET(request, { params }) {
   try {
     const session = await auth();
@@ -20,6 +20,17 @@ export async function GET(request, { params }) {
       );
     }
 
+    const contractor = contractors[0];
+
+    // IDOR Protection: hanya pemilik data atau admin yang boleh melihat detail
+    const selfRole = await sql`SELECT role FROM auth_users WHERE id = ${session.user.id}`;
+    const isAdmin = selfRole[0]?.role === "admin";
+    const isOwner = contractor.user_id === session.user.id;
+
+    if (!isAdmin && !isOwner) {
+      return Response.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     // Ambil data terkait
     const certifications =
       await sql`SELECT * FROM certifications WHERE contractor_id = ${id}`;
@@ -29,7 +40,7 @@ export async function GET(request, { params }) {
       await sql`SELECT * FROM documents WHERE contractor_id = ${id}`;
 
     return Response.json({
-      contractor: contractors[0],
+      contractor,
       certifications,
       projects,
       documents,
@@ -40,7 +51,7 @@ export async function GET(request, { params }) {
   }
 }
 
-// Update data kontraktor
+// Update data kontraktor (hanya pemilik atau admin)
 export async function PUT(request, { params }) {
   try {
     const session = await auth();
@@ -49,8 +60,30 @@ export async function PUT(request, { params }) {
     }
 
     const { id } = params;
-    const body = await request.json();
 
+    // IDOR Protection: ambil data kontraktor terlebih dahulu untuk verifikasi kepemilikan
+    const existing = await sql`SELECT user_id, status FROM contractors WHERE id = ${id}`;
+    if (existing.length === 0) {
+      return Response.json({ error: "Kontraktor tidak ditemukan" }, { status: 404 });
+    }
+
+    const selfRole = await sql`SELECT role FROM auth_users WHERE id = ${session.user.id}`;
+    const isAdmin = selfRole[0]?.role === "admin";
+    const isOwner = existing[0].user_id === session.user.id;
+
+    if (!isAdmin && !isOwner) {
+      return Response.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    // User biasa hanya boleh edit data saat masih berstatus 'pending'
+    if (!isAdmin && existing[0].status !== "pending") {
+      return Response.json(
+        { error: "Data yang sudah diverifikasi tidak dapat diedit" },
+        { status: 403 },
+      );
+    }
+
+    const body = await request.json();
     const setClauses = [];
     const values = [];
     let paramIndex = 1;

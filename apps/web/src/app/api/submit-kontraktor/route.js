@@ -1,10 +1,16 @@
 import sql from "@/app/api/utils/sql";
+import { auth } from "@/auth";
 
 const GOOGLE_SCRIPT_URL = process.env.GOOGLE_SCRIPT_URL;
 
 export async function POST(request) {
     try {
-        const body = await request.json();
+        // Wajib login untuk submit data kontraktor
+        const session = await auth();
+        if (!session?.user?.id) {
+            return Response.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
         const { 
             namaPerusahaan, 
             namaDirektur, 
