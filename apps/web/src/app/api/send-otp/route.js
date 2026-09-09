@@ -1,10 +1,10 @@
 /**
  * POST /api/auth/send-otp
- * Step 1 login: validasi email+password, kirim OTP 6 digit ke email
+ * Step 1 login: validasi email+password, kirim OTP 6 digit via WhatsApp
  */
 import sql from '@/app/api/utils/sql';
 import { compare } from 'bcryptjs';
-import { sendOtpEmail } from '@/app/api/auth/utils/mailer';
+import { sendOtpWhatsApp } from '@/app/api/auth/utils/whatsapp';
 
 function generateOtp() {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -27,12 +27,16 @@ export async function POST(request, context, c) {
     const normalizedEmail = email.toLowerCase().trim();
 
     // 1. Cek User & Password
-    const users = await sql`SELECT id, email, name, password FROM auth_users WHERE email ILIKE ${normalizedEmail}`;
+    const users = await sql`SELECT id, email, name, password, phone FROM auth_users WHERE email ILIKE ${normalizedEmail}`;
     const user = users[0];
 
     const passwordValid = user ? await compare(password, user.password) : false;
     if (!passwordValid) {
       return Response.json({ error: 'Email atau password salah' }, { status: 401 });
+    }
+
+    if (!user.phone) {
+      return Response.json({ error: 'Akun ini belum memiliki Nomor WhatsApp. Hubungi admin.' }, { status: 400 });
     }
 
     // 2. Rate limit: max 5 OTP request per email per 15 menit
@@ -54,13 +58,17 @@ export async function POST(request, context, c) {
       VALUES (${normalizedEmail}, ${otp}, ${expiresAt})
     `;
 
-    // 4. Kirim email OTP (Di-await agar reliabel di Vercel)
-    await sendOtpEmail({ to: user.email, otp, name: user.name });
+    // 4. Kirim WhatsApp OTP
+    await sendOtpWhatsApp({ phone: user.phone, otp, name: user.name });
 
-    return Response.json({ ok: true, message: 'Kode OTP telah dikirim ke email Anda' });
+    // Jangan mengirim nomor HP secara utuh sebagai respons untuk privasi, cukup sebagian
+    const maskedPhone = user.phone.slice(0, 4) + '****' + user.phone.slice(-3);
+
+    return Response.json({ ok: true, message: `Kode OTP telah dikirim ke WhatsApp Anda (${maskedPhone})` });
 
   } catch (error) {
     console.error('[send-otp] Error:', error);
     return Response.json({ error: 'Terjadi kesalahan pada sistem. Silakan coba lagi.' }, { status: 500 });
   }
 }
+

@@ -14,9 +14,9 @@ export async function POST(request, context, c) {
     } else {
       body = await request.json();
     }
-    const { email, password, name, otp } = body;
+    const { email, password, name, phone, otp } = body;
 
-    if (!email || !password || !name || !otp) {
+    if (!email || !password || !name || !phone || !otp) {
       return Response.json({ error: 'Data tidak lengkap' }, { status: 400 });
     }
 
@@ -45,14 +45,14 @@ export async function POST(request, context, c) {
       return Response.json({ error: 'Email sudah terdaftar' }, { status: 400 });
     }
 
-    // 4. Buat User
+    // 4. Buat User (dengan nomor HP)
     const id = 'user_' + Date.now();
     const hashedPassword = await hash(password, 10);
     
     const result = await sql`
-      INSERT INTO auth_users (id, email, name, password, role)
-      VALUES (${id}, ${normalizedEmail}, ${name}, ${hashedPassword}, 'user')
-      RETURNING id, email, name, role
+      INSERT INTO auth_users (id, email, name, password, role, phone)
+      VALUES (${id}, ${normalizedEmail}, ${name}, ${hashedPassword}, 'user', ${phone})
+      RETURNING id, email, name, role, phone
     `;
     const newUser = result[0];
 
@@ -73,3 +73,4 @@ export async function POST(request, context, c) {
     return Response.json({ error: 'Terjadi kesalahan server' }, { status: 500 });
   }
 }
+
