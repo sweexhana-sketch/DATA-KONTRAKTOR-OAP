@@ -1,37 +1,104 @@
 import sql from "@/app/api/utils/sql";
+import { auth } from "@/auth";
+import { verifyCsrf } from "@/app/api/utils/csrf";
+import { rateLimit, getClientIp } from "@/app/api/utils/rate-limit";
+import { sanitizeText, sanitizeEmail } from "@/app/api/utils/sanitize";
+
+const penugasanRl = rateLimit({ windowMs: 60 * 60 * 1000, max: 20 }); // 20x/jam per IP
 
 /**
  * GET /api/penugasan
- * Daftar semua penugasan.
+ * Daftar semua penugasan. Memerlukan login.
  * Query params: wilayah_id, status, contractor_id
  */
 export async function GET(request) {
   try {
+    // Wajib login untuk mengakses data penugasan
+    const session = await auth();
+    if (!session?.user?.id) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
-    const wilayah_id = searchParams.get("wilayah_id");
-    const status = searchParams.get("status");
+    const wilayah_id    = searchParams.get("wilayah_id");
+    const status        = searchParams.get("status");
     const contractor_id = searchParams.get("contractor_id");
 
-    let query = `
-      SELECT
-        pk.*,
-        c.company_name, c.full_name, c.company_type, c.phone,
-        w.nama AS wilayah_nama, w.kode AS wilayah_kode, w.tipe AS wilayah_tipe
-      FROM penugasan_kontraktor pk
-      JOIN contractors c ON c.id = pk.contractor_id
-      JOIN wilayah w ON w.id = pk.wilayah_id
-      WHERE 1=1
-    `;
-    const params = [];
-    let idx = 1;
+    let penugasan;
 
-    if (wilayah_id) { query += ` AND pk.wilayah_id = $${idx++}`; params.push(wilayah_id); }
-    if (status)     { query += ` AND pk.status = $${idx++}`; params.push(status); }
-    if (contractor_id) { query += ` AND pk.contractor_id = $${idx++}`; params.push(contractor_id); }
+    if (wilayah_id && status && contractor_id) {
+      penugasan = await sql`
+        SELECT pk.*, c.company_name, c.full_name, c.company_type, c.phone,
+          w.nama AS wilayah_nama, w.kode AS wilayah_kode, w.tipe AS wilayah_tipe
+        FROM penugasan_kontraktor pk
+        JOIN contractors c ON c.id = pk.contractor_id
+        JOIN wilayah w ON w.id = pk.wilayah_id
+        WHERE pk.wilayah_id = ${wilayah_id} AND pk.status = ${status} AND pk.contractor_id = ${contractor_id}
+        ORDER BY pk.created_at DESC`;
+    } else if (wilayah_id && status) {
+      penugasan = await sql`
+        SELECT pk.*, c.company_name, c.full_name, c.company_type, c.phone,
+          w.nama AS wilayah_nama, w.kode AS wilayah_kode, w.tipe AS wilayah_tipe
+        FROM penugasan_kontraktor pk
+        JOIN contractors c ON c.id = pk.contractor_id
+        JOIN wilayah w ON w.id = pk.wilayah_id
+        WHERE pk.wilayah_id = ${wilayah_id} AND pk.status = ${status}
+        ORDER BY pk.created_at DESC`;
+    } else if (wilayah_id && contractor_id) {
+      penugasan = await sql`
+        SELECT pk.*, c.company_name, c.full_name, c.company_type, c.phone,
+          w.nama AS wilayah_nama, w.kode AS wilayah_kode, w.tipe AS wilayah_tipe
+        FROM penugasan_kontraktor pk
+        JOIN contractors c ON c.id = pk.contractor_id
+        JOIN wilayah w ON w.id = pk.wilayah_id
+        WHERE pk.wilayah_id = ${wilayah_id} AND pk.contractor_id = ${contractor_id}
+        ORDER BY pk.created_at DESC`;
+    } else if (status && contractor_id) {
+      penugasan = await sql`
+        SELECT pk.*, c.company_name, c.full_name, c.company_type, c.phone,
+          w.nama AS wilayah_nama, w.kode AS wilayah_kode, w.tipe AS wilayah_tipe
+        FROM penugasan_kontraktor pk
+        JOIN contractors c ON c.id = pk.contractor_id
+        JOIN wilayah w ON w.id = pk.wilayah_id
+        WHERE pk.status = ${status} AND pk.contractor_id = ${contractor_id}
+        ORDER BY pk.created_at DESC`;
+    } else if (wilayah_id) {
+      penugasan = await sql`
+        SELECT pk.*, c.company_name, c.full_name, c.company_type, c.phone,
+          w.nama AS wilayah_nama, w.kode AS wilayah_kode, w.tipe AS wilayah_tipe
+        FROM penugasan_kontraktor pk
+        JOIN contractors c ON c.id = pk.contractor_id
+        JOIN wilayah w ON w.id = pk.wilayah_id
+        WHERE pk.wilayah_id = ${wilayah_id}
+        ORDER BY pk.created_at DESC`;
+    } else if (status) {
+      penugasan = await sql`
+        SELECT pk.*, c.company_name, c.full_name, c.company_type, c.phone,
+          w.nama AS wilayah_nama, w.kode AS wilayah_kode, w.tipe AS wilayah_tipe
+        FROM penugasan_kontraktor pk
+        JOIN contractors c ON c.id = pk.contractor_id
+        JOIN wilayah w ON w.id = pk.wilayah_id
+        WHERE pk.status = ${status}
+        ORDER BY pk.created_at DESC`;
+    } else if (contractor_id) {
+      penugasan = await sql`
+        SELECT pk.*, c.company_name, c.full_name, c.company_type, c.phone,
+          w.nama AS wilayah_nama, w.kode AS wilayah_kode, w.tipe AS wilayah_tipe
+        FROM penugasan_kontraktor pk
+        JOIN contractors c ON c.id = pk.contractor_id
+        JOIN wilayah w ON w.id = pk.wilayah_id
+        WHERE pk.contractor_id = ${contractor_id}
+        ORDER BY pk.created_at DESC`;
+    } else {
+      penugasan = await sql`
+        SELECT pk.*, c.company_name, c.full_name, c.company_type, c.phone,
+          w.nama AS wilayah_nama, w.kode AS wilayah_kode, w.tipe AS wilayah_tipe
+        FROM penugasan_kontraktor pk
+        JOIN contractors c ON c.id = pk.contractor_id
+        JOIN wilayah w ON w.id = pk.wilayah_id
+        ORDER BY pk.created_at DESC`;
+    }
 
-    query += ` ORDER BY pk.created_at DESC`;
-
-    const penugasan = await sql(query, params);
     return Response.json({ penugasan });
   } catch (error) {
     console.error("GET /api/penugasan error:", error);
@@ -43,24 +110,29 @@ export async function GET(request) {
  * POST /api/penugasan
  * Menunjuk satu kontraktor ke satu wilayah untuk satu paket pekerjaan.
  * COLLISION GUARD: menolak jika ada penugasan aktif yang periode-nya overlap.
- *
- * Body: {
- *   contractor_id, wilayah_id, nama_paket, tahun_anggaran,
- *   tanggal_mulai, tanggal_selesai, catatan, assigned_by_email
- * }
  */
 export async function POST(request) {
   try {
-    const {
-      contractor_id,
-      wilayah_id,
-      nama_paket,
-      tahun_anggaran,
-      tanggal_mulai,
-      tanggal_selesai,
-      catatan,
-      assigned_by_email,
-    } = await request.json();
+    // CSRF check
+    const csrfError = verifyCsrf(request);
+    if (csrfError) return csrfError;
+
+    // Rate limit
+    const ip = getClientIp(request);
+    const { ok } = penugasanRl.check(ip);
+    if (!ok) {
+      return Response.json({ error: "Terlalu banyak permintaan. Coba lagi nanti." }, { status: 429 });
+    }
+
+    const body = await request.json();
+    const contractor_id      = sanitizeText(body.contractor_id, { maxLength: 100 });
+    const wilayah_id         = sanitizeText(body.wilayah_id, { maxLength: 100 });
+    const nama_paket         = sanitizeText(body.nama_paket, { maxLength: 300 });
+    const tahun_anggaran     = body.tahun_anggaran || null;
+    const tanggal_mulai      = body.tanggal_mulai || null;
+    const tanggal_selesai    = body.tanggal_selesai || null;
+    const catatan            = sanitizeText(body.catatan, { maxLength: 500 });
+    const assigned_by_email  = sanitizeEmail(body.assigned_by_email);
 
     // ── Validasi input ──────────────────────────────────────────────────
     if (!contractor_id || !wilayah_id || !nama_paket || !tanggal_mulai || !tanggal_selesai || !assigned_by_email) {

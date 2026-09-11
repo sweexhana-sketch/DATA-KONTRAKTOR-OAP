@@ -4,6 +4,8 @@
  */
 import sql from '@/app/api/utils/sql';
 import { sendOtpWhatsApp } from '@/app/api/auth/utils/whatsapp';
+import { verifyCsrf } from '@/app/api/utils/csrf';
+import { sanitizeEmail, sanitizePhone } from '@/app/api/utils/sanitize';
 
 function generateOtp() {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -11,13 +13,19 @@ function generateOtp() {
 
 export async function POST(request, context, c) {
   try {
+    // CSRF check
+    const csrfError = verifyCsrf(request);
+    if (csrfError) return csrfError;
+
     let body;
     if (c) {
       body = await c.req.json();
     } else {
       body = await request.json();
     }
-    const { email, phone } = body;
+
+    const email = sanitizeEmail(body.email);
+    const phone = sanitizePhone(body.phone);
 
     if (!email || !phone) {
       return Response.json({ error: 'Email dan Nomor HP/WhatsApp wajib diisi' }, { status: 400 });

@@ -5,6 +5,8 @@
 import sql from '@/app/api/utils/sql';
 import { compare } from 'bcryptjs';
 import { sendOtpWhatsApp } from '@/app/api/auth/utils/whatsapp';
+import { verifyCsrf } from '@/app/api/utils/csrf';
+import { sanitizeEmail } from '@/app/api/utils/sanitize';
 
 function generateOtp() {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -12,13 +14,19 @@ function generateOtp() {
 
 export async function POST(request, context, c) {
   try {
+    // CSRF check
+    const csrfError = verifyCsrf(request);
+    if (csrfError) return csrfError;
+
     let body;
     if (c) {
       body = await c.req.json();
     } else {
       body = await request.json();
     }
-    const { email, password } = body;
+
+    const email    = sanitizeEmail(body.email);
+    const password = typeof body.password === 'string' ? body.password : '';
 
     if (!email || !password) {
       return Response.json({ error: 'Email dan password wajib diisi' }, { status: 400 });

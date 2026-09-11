@@ -5,16 +5,27 @@
 import sql from '@/app/api/utils/sql';
 import { hash } from 'bcryptjs';
 import { syncToGoogleSheets } from '@/app/api/utils/google-sheets';
+import { verifyCsrf } from '@/app/api/utils/csrf';
+import { sanitizeEmail, sanitizeText, sanitizePhone } from '@/app/api/utils/sanitize';
 
 export async function POST(request, context, c) {
   try {
+    // CSRF check
+    const csrfError = verifyCsrf(request);
+    if (csrfError) return csrfError;
+
     let body;
     if (c) {
       body = await c.req.json();
     } else {
       body = await request.json();
     }
-    const { email, password, name, phone, otp } = body;
+
+    const email = sanitizeEmail(body.email);
+    const name  = sanitizeText(body.name, { maxLength: 100 });
+    const phone = sanitizePhone(body.phone);
+    const password = typeof body.password === 'string' ? body.password : '';
+    const otp      = typeof body.otp === 'string' ? body.otp.trim() : '';
 
     if (!email || !password || !name || !phone || !otp) {
       return Response.json({ error: 'Data tidak lengkap' }, { status: 400 });

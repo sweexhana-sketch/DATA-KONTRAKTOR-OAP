@@ -51,7 +51,10 @@ export default function SignUpPage() {
     try {
       const res = await fetch("/api/signup/send-otp", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "X-Requested-With": "XMLHttpRequest"
+        },
         body: JSON.stringify({ email: email.trim(), phone: phone.trim() }),
       });
       const data = await res.json();
@@ -79,7 +82,10 @@ export default function SignUpPage() {
     try {
       const res = await fetch("/api/signup/verify", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "X-Requested-With": "XMLHttpRequest"
+        },
         body: JSON.stringify({ email: email.trim(), password, name, phone: phone.trim(), otp }),
       });
       const data = await res.json();
@@ -104,8 +110,11 @@ export default function SignUpPage() {
     try {
       const res = await fetch("/api/signup/send-otp", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim() }),
+        headers: { 
+          "Content-Type": "application/json",
+          "X-Requested-With": "XMLHttpRequest"
+        },
+        body: JSON.stringify({ email: email.trim(), phone: phone.trim() }),
       });
       if (res.ok) {
         setResendCooldown(60);

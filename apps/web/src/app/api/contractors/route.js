@@ -2,6 +2,11 @@ import sql from "@/app/api/utils/sql";
 import { auth } from "@/auth";
 import { requireAdmin } from "@/app/api/utils/require-admin";
 import { syncToGoogleSheets } from "@/app/api/utils/google-sheets";
+import { verifyCsrf } from "@/app/api/utils/csrf";
+import { rateLimit, getClientIp } from "@/app/api/utils/rate-limit";
+import { sanitizeText, sanitizeEmail, sanitizePhone, sanitizeNik } from "@/app/api/utils/sanitize";
+
+const submitRl = rateLimit({ windowMs: 60 * 60 * 1000, max: 5 }); // 5x/jam per IP
 
 // Mendapatkan daftar kontraktor (hanya untuk admin)
 export async function GET(request) {
@@ -50,34 +55,45 @@ export async function GET(request) {
 // Membuat data kontraktor baru
 export async function POST(request) {
   try {
+    // CSRF check
+    const csrfError = verifyCsrf(request);
+    if (csrfError) return csrfError;
+
+    // Rate limit: 5 submit per jam per IP
+    const ip = getClientIp(request);
+    const { ok } = submitRl.check(ip);
+    if (!ok) {
+      return Response.json({ error: "Terlalu banyak permintaan. Coba lagi nanti." }, { status: 429 });
+    }
+
     const session = await auth();
     if (!session?.user?.id) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json();
-    const {
-      nik,
-      full_name,
-      birth_place,
-      birth_date,
-      phone,
-      email,
-      address,
-      city,
-      company_name,
-      company_type,
-      npwp,
-      company_address,
-      company_phone,
-      establishment_year,
-      business_field,
-      small_classification,
-      medium_classification,
-      large_classification,
-      anggotaAsosiasi,
-      namaAsosiasi,
-    } = body;
+
+    // Sanitasi semua input teks
+    const nik              = sanitizeNik(body.nik);
+    const full_name        = sanitizeText(body.full_name, { maxLength: 150 });
+    const birth_place      = sanitizeText(body.birth_place, { maxLength: 100 });
+    const birth_date       = body.birth_date || null;
+    const phone            = sanitizePhone(body.phone);
+    const email            = sanitizeEmail(body.email) || session.user.email;
+    const address          = sanitizeText(body.address, { maxLength: 300 });
+    const city             = sanitizeText(body.city, { maxLength: 100 });
+    const company_name     = sanitizeText(body.company_name, { maxLength: 200 });
+    const company_type     = sanitizeText(body.company_type, { maxLength: 100 });
+    const npwp             = sanitizeText(body.npwp, { maxLength: 30 });
+    const company_address  = sanitizeText(body.company_address, { maxLength: 300 });
+    const company_phone    = sanitizePhone(body.company_phone);
+    const establishment_year = body.establishment_year || null;
+    const business_field   = body.business_field || [];
+    const small_classification  = sanitizeText(body.small_classification, { maxLength: 200 });
+    const medium_classification = sanitizeText(body.medium_classification, { maxLength: 200 });
+    const large_classification  = sanitizeText(body.large_classification, { maxLength: 200 });
+    const anggotaAsosiasi  = sanitizeText(body.anggotaAsosiasi, { maxLength: 50 });
+    const namaAsosiasi     = sanitizeText(body.namaAsosiasi, { maxLength: 150 });
 
     // Validasi NIK unik
     const existing = await sql`SELECT id FROM contractors WHERE nik = ${nik}`;
