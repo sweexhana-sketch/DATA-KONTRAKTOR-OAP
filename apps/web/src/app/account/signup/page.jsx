@@ -30,6 +30,7 @@ export default function SignUpPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
+  const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
 
   const [showPassword, setShowPassword] = useState(false);
@@ -42,7 +43,8 @@ export default function SignUpPage() {
     setLoading(true);
     setError(null);
 
-    if (!name || !email || !password || !confirm) { setError("Semua kolom wajib diisi"); setLoading(false); return; }
+    if (!name || !email || !phone || !password || !confirm) { setError("Semua kolom wajib diisi"); setLoading(false); return; }
+    if (!/^[0-9+\-\s()]{8,15}$/.test(phone)) { setError("Nomor telepon tidak valid"); setLoading(false); return; }
     if (password !== confirm) { setError("Konfirmasi password tidak cocok"); setLoading(false); return; }
     if (password.length < 6) { setError("Password minimal 6 karakter"); setLoading(false); return; }
 
@@ -78,7 +80,7 @@ export default function SignUpPage() {
       const res = await fetch("/api/signup/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), password, name, otp }),
+        body: JSON.stringify({ email: email.trim(), password, name, phone: phone.trim(), otp }),
       });
       const data = await res.json();
 
@@ -230,6 +232,15 @@ export default function SignUpPage() {
                     <input
                       type="email" value={email} onChange={e => setEmail(e.target.value)}
                       placeholder="email@perusahaan.com"
+                      className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/50 transition-all font-mono"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Nomor Telepon</label>
+                    <input
+                      type="tel" value={phone} onChange={e => setPhone(e.target.value)}
+                      placeholder="e.g. 08123456789"
                       className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/50 transition-all font-mono"
                     />
                   </div>
