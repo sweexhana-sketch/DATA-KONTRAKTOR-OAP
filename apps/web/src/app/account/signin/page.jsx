@@ -345,7 +345,7 @@ export default function SignInPage() {
                   </div>
                   <h2 className="text-2xl font-black text-white">Verifikasi Keamanan</h2>
                   <p className="text-sm text-slate-400 mt-2 leading-relaxed">
-                    Kode 6 digit telah dikirim ke email<br />
+                    Kode OTP 6 digit telah dikirim ke WhatsApp Anda<br />
                     <span className="font-semibold text-amber-400">{email}</span>
                   </p>
                 </div>

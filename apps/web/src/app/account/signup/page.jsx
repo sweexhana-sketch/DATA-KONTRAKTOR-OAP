@@ -320,14 +320,15 @@ export default function SignUpPage() {
               <div className="relative z-10 animate-in fade-in zoom-in-95 duration-500">
                 <div className="mb-6">
                   <div className="w-12 h-12 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mb-4 text-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.2)]">
+                    {/* Menggunakan icon message/phone alih-alih amplop email */}
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                     </svg>
                   </div>
-                  <h2 className="text-2xl font-black text-white">Verifikasi Email</h2>
+                  <h2 className="text-2xl font-black text-white">Verifikasi Nomor HP</h2>
                   <p className="text-sm text-slate-400 mt-2 leading-relaxed">
-                    Kode 6 digit telah dikirim ke email<br />
-                    <span className="font-semibold text-amber-400">{email}</span>
+                    Kode 6 digit telah dikirim ke WhatsApp<br />
+                    <span className="font-semibold text-amber-400">{phone}</span>
                   </p>
                 </div>
 
