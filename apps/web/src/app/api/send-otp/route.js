@@ -14,8 +14,8 @@ function generateOtp() {
 
 export async function POST(request, context, c) {
   try {
-    // CSRF check
-    const csrfError = verifyCsrf(request);
+    // CSRF check (mendukung Next.js dan Hono context)
+    const csrfError = verifyCsrf(request, c);
     if (csrfError) return csrfError;
 
     let body;

@@ -8,16 +8,16 @@ export async function sendOtpWhatsApp({ phone, otp, name }) {
   const token = process.env.FONNTE_TOKEN;
   
   if (!token) {
-    const errorMsg = '[whatsapp] FONNTE_TOKEN belum disetel di environment variables.';
-    console.warn(errorMsg);
+    console.warn('[whatsapp] FONNTE_TOKEN belum disetel di environment variables.');
     console.log(`\n=============================`);
     console.log(`  OTP WhatsApp untuk ${phone}: ${otp}`);
     console.log(`=============================\n`);
-    
+
+    // Di production, lempar error spesifik agar API bisa return pesan yang tepat
     if (process.env.NODE_ENV === 'production') {
-      throw new Error(errorMsg);
+      throw new Error('Layanan WhatsApp belum dikonfigurasi. Hubungi administrator.');
     }
-    return;
+    return; // Di development, lanjut tanpa kirim WA
   }
 
   // Bersihkan format nomor HP (ubah 08... menjadi 628...)

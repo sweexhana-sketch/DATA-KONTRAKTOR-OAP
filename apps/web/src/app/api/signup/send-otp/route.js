@@ -13,8 +13,8 @@ function generateOtp() {
 
 export async function POST(request, context, c) {
   try {
-    // CSRF check
-    const csrfError = verifyCsrf(request);
+    // CSRF check (mendukung Next.js dan Hono context)
+    const csrfError = verifyCsrf(request, c);
     if (csrfError) return csrfError;
 
     let body;
@@ -66,7 +66,14 @@ export async function POST(request, context, c) {
     `;
 
     // 5. Kirim WhatsApp
-    await sendOtpWhatsApp({ phone: phone, otp, name: 'Calon Pengguna' });
+    try {
+      await sendOtpWhatsApp({ phone: phone, otp, name: 'Calon Pengguna' });
+    } catch (waError) {
+      console.error('[signup-send-otp] WhatsApp error:', waError.message);
+      return Response.json({ 
+        error: waError.message || 'Gagal mengirim OTP ke WhatsApp. Pastikan nomor WhatsApp valid dan coba lagi.' 
+      }, { status: 500 });
+    }
 
     return Response.json({ ok: true, message: 'Kode OTP telah dikirim ke WhatsApp Anda' });
 

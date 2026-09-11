@@ -1,4 +1,4 @@
-﻿/**
+/**
  * csrf.js
  * CSRF protection menggunakan "Custom Header Check" pattern.
  *
@@ -9,7 +9,7 @@
  *
  * Penggunaan di API route:
  *   import { verifyCsrf } from '@/app/api/utils/csrf';
- *   const csrfError = verifyCsrf(request);
+ *   const csrfError = verifyCsrf(request, c);
  *   if (csrfError) return csrfError;
  *
  * Penggunaan di frontend fetch():
@@ -23,8 +23,26 @@
  *   });
  */
 
-export function verifyCsrf(request) {
-  const xrw = request.headers.get('x-requested-with');
+/**
+ * Verifikasi CSRF header pada request.
+ * Mendukung Next.js Web Request dan Hono context (parameter c).
+ * @param {Request} request
+ * @param {object} [c] - Hono context (opsional)
+ * @returns {Response|null}  null = OK, Response = error yang harus dikembalikan
+ */
+export function verifyCsrf(request, c) {
+  let xrw = null;
+
+  // Coba ambil header dari Hono context terlebih dahulu
+  if (c && typeof c.req?.header === 'function') {
+    xrw = c.req.header('x-requested-with');
+  }
+
+  // Fallback ke standard Web Request headers
+  if (!xrw && request && typeof request.headers?.get === 'function') {
+    xrw = request.headers.get('x-requested-with');
+  }
+
   if (xrw !== 'XMLHttpRequest') {
     return Response.json(
       { error: 'Permintaan tidak valid (CSRF check gagal)' },
@@ -33,3 +51,4 @@ export function verifyCsrf(request) {
   }
   return null;
 }
+
