@@ -14,25 +14,31 @@ export async function GET(request) {
     const status = searchParams.get("status");
     const search = searchParams.get("search");
 
-    let query = "SELECT * FROM contractors WHERE 1=1";
-    const params = [];
-    let paramIndex = 1;
+    let contractors;
+    const like = search ? `%${search}%` : null;
 
-    if (status && status !== "all") {
-      query += ` AND status = $${paramIndex}`;
-      params.push(status);
-      paramIndex++;
+    if (status && status !== "all" && like) {
+      contractors = await sql`
+        SELECT * FROM contractors
+        WHERE status = ${status}
+          AND (LOWER(full_name) LIKE LOWER(${like}) OR LOWER(company_name) LIKE LOWER(${like}) OR nik LIKE ${like})
+        ORDER BY created_at DESC
+      `;
+    } else if (status && status !== "all") {
+      contractors = await sql`
+        SELECT * FROM contractors
+        WHERE status = ${status}
+        ORDER BY created_at DESC
+      `;
+    } else if (like) {
+      contractors = await sql`
+        SELECT * FROM contractors
+        WHERE (LOWER(full_name) LIKE LOWER(${like}) OR LOWER(company_name) LIKE LOWER(${like}) OR nik LIKE ${like})
+        ORDER BY created_at DESC
+      `;
+    } else {
+      contractors = await sql`SELECT * FROM contractors ORDER BY created_at DESC`;
     }
-
-    if (search) {
-      query += ` AND (LOWER(full_name) LIKE LOWER($${paramIndex}) OR LOWER(company_name) LIKE LOWER($${paramIndex}) OR nik LIKE $${paramIndex})`;
-      params.push(`%${search}%`);
-      paramIndex++;
-    }
-
-    query += " ORDER BY created_at DESC";
-
-    const contractors = await sql(query, params);
 
     return Response.json({ contractors });
   } catch (error) {
