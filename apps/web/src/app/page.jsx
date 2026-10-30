@@ -78,7 +78,7 @@ export default function HomePage() {
     const fetchUserRole = async () => {
       if (user?.id) {
         try {
-          const res = await fetch(`/api/user/role?email=${encodeURIComponent(user.email)}`);
+          const res = await fetch(`/api/user/role`);
           if (res.ok) {
             const data = await res.json();
             setUserRole(data.role);

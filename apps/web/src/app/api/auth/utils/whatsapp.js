@@ -6,11 +6,9 @@
 
 export async function sendOtpWhatsApp({ phone, otp, name }) {
   const token = process.env.FONNTE_TOKEN;
-  
+
   if (!token) {
     console.warn('[whatsapp] FONNTE_TOKEN belum disetel di environment variables.');
-    console.log(`\n=============================`);
-    console.log(`  OTP WhatsApp untuk ${phone}: ${otp}`);
     console.log(`=============================\n`);
 
     // Di production, lempar error spesifik agar API bisa return pesan yang tepat
@@ -30,7 +28,7 @@ export async function sendOtpWhatsApp({ phone, otp, name }) {
 
   try {
     console.log(`[whatsapp] Mencoba mengirim OTP ke WA ${targetPhone}...`);
-    
+
     const response = await fetch('https://api.fonnte.com/send', {
       method: 'POST',
       headers: {
@@ -54,6 +52,6 @@ export async function sendOtpWhatsApp({ phone, otp, name }) {
     if (process.env.NODE_ENV === 'production') {
       throw err;
     }
-    console.log(`[whatsapp] Fallback Console OTP: ${otp}`);
+
   }
 }

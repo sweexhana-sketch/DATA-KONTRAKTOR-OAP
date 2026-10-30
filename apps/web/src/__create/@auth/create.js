@@ -4,7 +4,7 @@ import { getContext } from 'hono/context-storage';
 export default function CreateAuth() {
 	const auth = async () => {
 		const c = getContext();
-		const secret = process['env'].AUTH_SECRET || 'dev-secret-please-change';
+		const secret = process['env'].AUTH_SECRET;
 		const authUrl = process['env'].AUTH_URL || '';
 		const isSecure = authUrl.startsWith('https') || !!process['env'].VERCEL;
 		const token = await getToken({

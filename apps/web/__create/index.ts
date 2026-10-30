@@ -41,11 +41,12 @@ const app = new Hono<{ Bindings: AuthEnv; Variables: { requestId: string } }>();
 
 // 1. Global Logging & Interception
 app.use('*', async (c, next) => {
-  console.log(`[Global Log] ${c.req.method} ${c.req.url} (path: ${c.req.path})`);
+  console.log(`[Global Log] ${c.req.method} ${new URL(c.req.url).pathname}`);
   await next();
 });
 
-const AUTH_SECRET = process['env'].AUTH_SECRET || 'dev-secret-please-change';
+const AUTH_SECRET = process.env.AUTH_SECRET;
+if (!AUTH_SECRET || AUTH_SECRET.length < 32) throw new Error('AUTH_SECRET wajib diatur dan minimal 32 karakter');
 
 // 2. Auth Configuration & Handling (PRIORITY)
 const authConfig = initAuthConfig((_c) => {
@@ -200,8 +201,7 @@ app.onError((err, c) => {
     return c.json(
       {
         error: 'An error occurred in your app',
-        message: err.message,
-        details: serializeError(err),
+        requestId: c.req.header('x-request-id') || undefined,
       },
       500
     );
@@ -215,7 +215,7 @@ function getHTMLForErrorPage(err: any): string {
       <head><title>Error</title></head>
       <body>
         <h1>An error occurred</h1>
-        <pre>${err.stack || err.message}</pre>
+        <p>Silakan coba lagi nanti.</p>
       </body>
     </html>
   `;
@@ -224,7 +224,7 @@ function getHTMLForErrorPage(err: any): string {
 app.use(
   '/*',
   cors({
-    origin: (origin) => origin || '*',
+    origin: (origin) => { const allowed = (process.env.ALLOWED_ORIGINS || '').split(',').map((v) => v.trim()).filter(Boolean); return origin && allowed.includes(origin) ? origin : allowed[0] || ''; },
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowHeaders: ['Content-Type', 'Authorization', 'x-api-key', 'X-Requested-With', 'Accept'],
     exposeHeaders: ['Content-Length'],
@@ -263,7 +263,7 @@ app.get('/api/integration/contractors', async (c) => {
 
     const status = c.req.query('status') || 'ditunjuk'; // DEFAULT: hanya ditunjuk
     const search = c.req.query('search');
-    const limit  = parseInt(c.req.query('limit') || '500', 10);
+    const limit  = Math.min(Math.max(parseInt(c.req.query('limit') || '100', 10) || 100, 1), 100);
 
     let query = 'SELECT id, company_name, full_name, company_type, small_classification, medium_classification, large_classification, city, status, created_at, updated_at FROM contractors WHERE 1=1';
     const params: any[] = [];
@@ -324,6 +324,7 @@ app.get('/api/integration/contractors/:id', async (c) => {
 
 // GET /api/integration/debug-status — Cek koneksi DB & jumlah baris
 app.get('/api/integration/debug-status', async (c) => {
+  if (process.env.NODE_ENV === 'production') return c.json({ error: 'Not found' }, 404);
   try {
     const totalCount = await sql('SELECT COUNT(*) as count FROM contractors');
     const tableList = await sql("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'");
@@ -333,7 +334,6 @@ app.get('/api/integration/debug-status', async (c) => {
     
     const envVars = {
       has_db_url: !!process.env.DATABASE_URL,
-      db_url_prefix: process.env.DATABASE_URL ? process.env.DATABASE_URL.substring(0, 15) + '...' : 'none',
       node_env: process.env.NODE_ENV
     };
     
@@ -341,17 +341,13 @@ app.get('/api/integration/debug-status', async (c) => {
       success: true,
       db_status: 'connected',
       total_in_db: totalCount[0]?.count || 0,
-      tables: tableList.map((t: any) => t.table_name),
-      contractor_columns: columnList.map((col: any) => col.column_name),
-      sample_data: sample,
-      environment: envVars,
+      diagnostics: { hasDatabase: !!process.env.DATABASE_URL },
       time: new Date().toISOString()
     });
   } catch (err: any) {
     return c.json({
       success: false,
-      error: err.message,
-      stack: err.stack,
+      error: 'Internal Server Error',
       db_status: 'failed'
     }, 500);
   }

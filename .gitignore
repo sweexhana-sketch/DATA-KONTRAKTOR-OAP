@@ -1,10 +1,11 @@
 node_modules/
+.vercel/
 .env
 .env.*
 !.env.example
-.vercel/
-build/
-.react-router/
-*.log
-dist/
 .DS_Store
+*.log
+*.map
+apps/web/build/
+apps/web/dist/
+apps/web/.data/

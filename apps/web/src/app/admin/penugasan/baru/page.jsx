@@ -94,7 +94,7 @@ export default function PenugasanBaruPage() {
     Promise.all([
       fetch("/api/wilayah").then(r => r.json()),
       fetch("/api/contractors?status=approved").then(r => r.json()),
-      fetch(`/api/user/role?email=${encodeURIComponent(session.user.email)}`).then(r => r.json())
+      fetch(`/api/user/role`).then(r => r.json())
     ]).then(([wd, cd, roleData]) => {
       setWilayahList(wd.wilayah || []);
       // Include approved + ditunjuk (ditunjuk might become available)

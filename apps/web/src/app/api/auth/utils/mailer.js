@@ -28,35 +28,34 @@ function createTransport() {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS,
     },
-    logger: true, // Log SMTP traffic
-    debug: true   // Include SMTP traffic in console
+    logger: false,
+    debug: false
   });
 }
 
 export async function sendOtpEmail({ to, otp, name }) {
   const isProd = process.env.NODE_ENV === 'production';
-  
+
   // Jika SMTP belum dikonfigurasi
   if (!isSmtpConfigured()) {
     const errorMsg = '[mailer] SMTP_USER atau SMTP_PASS belum disetel di environment variables.';
     console.warn(errorMsg);
     console.log(`\n=============================`);
-    console.log(`  OTP untuk ${to}: ${otp}`);
     console.log(`=============================\n`);
-    
+
     // Di produksi, kita harus menganggap ini error fatal agar user tahu ada yang kurang
     if (isProd) {
       throw new Error(errorMsg);
     }
-    return; 
+    return;
   }
 
   try {
     const transporter = createTransport();
     const from = process.env.SMTP_FROM || `"Dinas PUPR Papua Barat Daya" <${process.env.SMTP_USER}>`;
 
-    console.log(`[mailer] Mencoba mengirim OTP ke ${to}...`);
-    
+
+
     // Kirim email OTP
     const info = await transporter.sendMail({
       from,
@@ -113,17 +112,17 @@ export async function sendOtpEmail({ to, otp, name }) {
         </html>
       `,
     });
-    console.log(`[mailer] OTP berhasil dikirim ke ${to}. MessageId: ${info.messageId}`);
+
   } catch (err) {
     console.error('❌ [mailer] GAGAL KIRIM EMAIL OTP:', err.message);
-    
+
     // Di produksi, kita lempar error agar API mengirim status 500/Error ke user
     if (isProd) {
       throw err;
     }
-    
+
     // Di development, tampilkan di console sebagai fallback
-    console.log(`[mailer] Fallback Console OTP (karena error SMTP): ${otp}`);
+
   }
 }
 
