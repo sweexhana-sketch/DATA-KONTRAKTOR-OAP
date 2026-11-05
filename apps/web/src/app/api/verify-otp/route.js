@@ -18,6 +18,21 @@ export async function POST(request, context, c) {
       return Response.json({ error: 'Email dan OTP wajib diisi' }, { status: 400 });
     }
 
+    // Tabel percobaan gagal (dibuat jika belum ada)
+    await sql`CREATE TABLE IF NOT EXISTS login_otp_attempts (
+      id SERIAL PRIMARY KEY, email TEXT NOT NULL,
+      created_at TIMESTAMP NOT NULL DEFAULT NOW())`;
+
+    // Batas percobaan: maks 5 salah per email dalam 15 menit
+    const fails = await sql`
+      SELECT COUNT(*) AS count FROM login_otp_attempts
+      WHERE email = ${email.toLowerCase().trim()}
+        AND created_at > NOW() - INTERVAL '15 minutes'
+    `;
+    if (parseInt(fails[0].count) >= 5) {
+      return Response.json({ error: 'Terlalu banyak percobaan. Coba lagi dalam 15 menit.' }, { status: 429 });
+    }
+
     // Cari OTP yang valid (cocok dengan input user)
     const otps = await sql`
       SELECT id, otp, expires_at, used FROM login_otps
@@ -30,6 +45,7 @@ export async function POST(request, context, c) {
     `;
 
     if (otps.length === 0) {
+      await sql`INSERT INTO login_otp_attempts (email) VALUES (${email.toLowerCase().trim()})`;
       return Response.json({ error: 'Kode OTP salah atau sudah kedaluwarsa' }, { status: 400 });
     }
 

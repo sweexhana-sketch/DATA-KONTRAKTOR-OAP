@@ -8,8 +8,9 @@ import { sendOtpWhatsApp } from '@/app/api/auth/utils/whatsapp';
 import { verifyCsrf } from '@/app/api/utils/csrf';
 import { sanitizeEmail } from '@/app/api/utils/sanitize';
 
+import { randomInt } from 'node:crypto';
 function generateOtp() {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  return randomInt(100000, 1000000).toString();
 }
 
 export async function POST(request, context, c) {

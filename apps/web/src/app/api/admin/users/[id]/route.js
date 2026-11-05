@@ -7,6 +7,10 @@ export async function POST(request, { params }) {
         const check = await requireAdmin();
         if (check.error) return check.error;
         const session = check.session;
+        // Hanya admin penuh yang boleh mengubah role. admin_wilayah/admin_provinsi tidak.
+        if (check.dbUser?.role !== "admin") {
+            return Response.json({ error: "Forbidden" }, { status: 403 });
+        }
 
         const { role } = await request.json();
         if (!["admin", "user", "kontraktor"].includes(role)) {
