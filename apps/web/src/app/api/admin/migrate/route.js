@@ -1,16 +1,17 @@
 import sql from "@/app/api/utils/sql";
+import { requireAdmin } from "@/app/api/utils/require-admin";
 
 /**
  * GET /api/admin/migrate
  * Menjalankan migrasi database untuk fitur multi-wilayah.
- * Panggil sekali: /api/admin/migrate?key=INIT_MIGRATION_2025
+ * Panggil sekali sebagai admin yang sudah login.
  */
 export async function GET(request) {
-  const { searchParams } = new URL(request.url);
-  const key = searchParams.get("key");
-
-  if (key !== "INIT_MIGRATION_2025") {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  // Hanya admin penuh dengan sesi login. Kunci statis dihapus karena sudah publik di repo.
+  const check = await requireAdmin();
+  if (check.error) return check.error;
+  if (check.dbUser?.role !== "admin") {
+    return Response.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const steps = [];
