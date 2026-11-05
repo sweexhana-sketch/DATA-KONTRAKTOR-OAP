@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import useUser from "@/utils/useUser";
 import logoPBD from "@/assets/logo-papua-barat-daya.png";
 import { LogoRow } from "@/utils/logos";
@@ -265,7 +265,7 @@ export default function HomePage() {
             <img src={logoPBD.src || logoPBD} alt="" className="w-8 h-8 object-contain opacity-40 grayscale" />
             <span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">Dinas PUPR Provinsi Papua Barat Daya</span>
           </div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-600">SIKAP / SI PRO © 2025</p>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-600">SIKAP / SI PRO © {new Date().getFullYear()}</p>
         </div>
       </footer>
     </div>

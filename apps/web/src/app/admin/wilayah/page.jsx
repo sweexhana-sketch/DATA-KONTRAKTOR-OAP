@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useSession } from "@auth/create/react";
 import logoPBD from "@/assets/logo-papua-barat-daya.png";
 import { WILAYAH_LOGOS } from "@/utils/logos";
@@ -283,7 +283,7 @@ export default function AdminWilayahPage() {
       </main>
       <footer className="relative z-10 mt-12 border-t border-white/10 bg-black/40 backdrop-blur-xl py-5">
         <div className="max-w-7xl mx-auto px-4 text-center text-[10px] font-bold text-slate-600 uppercase tracking-widest">
-          SIKAP — Sistem Multi-Wilayah Papua Barat Daya © 2025
+          SIKAP — Sistem Multi-Wilayah Papua Barat Daya © {new Date().getFullYear()}
         </div>
       </footer>
     </div>

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Utility kirim email OTP via nodemailer (Gmail SMTP)
  * Env vars:
  *   SMTP_USER  = your-email@gmail.com
@@ -100,7 +100,7 @@ export async function sendOtpEmail({ to, otp, name }) {
                 <tr>
                   <td style="background:#f9fafb;padding:20px 40px;text-align:center;border-top:1px solid #e5e7eb;">
                     <p style="color:#9ca3af;font-size:11px;margin:0;">
-                      © 2025 Dinas PUPR Provinsi Papua Barat Daya<br>
+                      © ${new Date().getFullYear()} Dinas PUPR Provinsi Papua Barat Daya<br>
                       Sistem Pendataan Kontraktor OAP
                     </p>
                   </td>

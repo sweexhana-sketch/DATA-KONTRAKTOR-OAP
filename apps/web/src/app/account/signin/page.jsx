@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import { signIn } from "@auth/create/react";
 import logoPBD from "@/assets/logo-papua-barat-daya.png";
 import { LogoRow } from "@/utils/logos";
@@ -419,7 +419,7 @@ export default function SignInPage() {
           </div>
           
           <p className="text-center text-xs text-slate-500 mt-6 tracking-wide">
-            © 2025 Dinas PUPR Provinsi Papua Barat Daya<br />
+            © {new Date().getFullYear()} Dinas PUPR Provinsi Papua Barat Daya<br />
             Sistem Pendataan Kontraktor OAP — v1.0
           </p>
         </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { signOut, useSession } from "@auth/create/react";
 import logoPBD from "@/assets/logo-papua-barat-daya.png";
 import { LogoRow } from "@/utils/logos";
@@ -664,7 +664,7 @@ export default function DashboardPage() {
                             <span className="text-[10px] text-slate-600 font-mono mt-0.5">SIKAP / v1.0.0-PRO</span>
                         </div>
                     </div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-600">Terintegrasi dengan SI PRO © 2025</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-600">Terintegrasi dengan SI PRO © {new Date().getFullYear()}</p>
                 </div>
             </footer>
         </div>
