@@ -175,8 +175,16 @@ const authConfig = initAuthConfig((_c) => {
   };
 });
 
-app.use('/api/auth/*', authConfig);
-app.all('/api/auth/*', authHandler());
+// expo-web-success adalah route aplikasi sendiri, bukan action Auth.js.
+// Tanpa pengecualian ini, authHandler menangkapnya dan melempar UnknownAction.
+app.use('/api/auth/*', async (c, next) => {
+  if (c.req.path === '/api/auth/expo-web-success') return next();
+  return authConfig(c, next);
+});
+app.all('/api/auth/*', async (c, next) => {
+  if (c.req.path === '/api/auth/expo-web-success') return next();
+  return authHandler()(c, next);
+});
 
 
 // 3. Middlewares
@@ -190,7 +198,7 @@ app.use('*', async (c, next) => {
   await next();
 });
 
-// app.use(contextStorage()); // Keep this as it's safe and useful for Hono
+app.use(contextStorage()); // Wajib: auth() di src/__create/@auth/create.js memanggil getContext()
 
 
 app.onError((err, c) => {
